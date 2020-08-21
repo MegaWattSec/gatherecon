@@ -115,7 +115,7 @@ if [ "$MODE" = "active" ]; then
 
     # Subscraper
     startFunction "Subscraper"
-    python "$TOOLS"/subscraper/subscraper.py -u "$DOMAIN" -o "$SUBS"/subscraper.txt
+    "$TOOLS"/subscraper/subscraper.py -u "$DOMAIN" -o "$SUBS"/subscraper.txt
     echo -e "[${GREEN}+${RESET}] Done."
 fi
 
