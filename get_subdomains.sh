@@ -18,6 +18,7 @@ RESULTDIR="$HOME/assets/$DOMAIN/$FOLDERNAME"
 SUBS="$RESULTDIR/subdomains"
 WORDLIST="$RESULTDIR/wordlists"
 IPS="$RESULTDIR/ips"
+TOOLS="$HOME/tools"
 MODE=active
 SECONDS=0
 
@@ -80,7 +81,7 @@ done
 
 # Gather resolvers
 startFunction "bass (resolvers)"
-cd "$HOME"/tools/bass || return
+cd "$TOOLS"/bass || return
 python3 bass.py -d "$DOMAIN" -o "$IPS"/resolvers.txt
 
 startFunction "subfinder"
@@ -89,11 +90,11 @@ echo -e "[${GREEN}+${RESET}] Done."
 
 # Github gives different result sometimes, so running multiple instances so that we don't miss any subdomain
 startFunction "github-subdomains"
-python3 "$HOME"/tools/github-subdomains.py -t $github_subdomains_token -d "$DOMAIN" | sort -u >> "$SUBS"/github_subdomains.txt
+python3 "$TOOLS"/github-subdomains.py -t $github_subdomains_token -d "$DOMAIN" | sort -u >> "$SUBS"/github_subdomains.txt
 sleep 5
-python3 "$HOME"/tools/github-subdomains.py -t $github_subdomains_token -d "$DOMAIN" | sort -u >> "$SUBS"/github_subdomains.txt
+python3 "$TOOLS"/github-subdomains.py -t $github_subdomains_token -d "$DOMAIN" | sort -u >> "$SUBS"/github_subdomains.txt
 sleep 5
-python3 "$HOME"/tools/github-subdomains.py -t $github_subdomains_token -d "$DOMAIN" | sort -u >> "$SUBS"/github_subdomains.txt
+python3 "$TOOLS"/github-subdomains.py -t $github_subdomains_token -d "$DOMAIN" | sort -u >> "$SUBS"/github_subdomains.txt
 echo -e "[${GREEN}+${RESET}] Done."
 
 # Using passive mode in amass to stop it from resolving subdomains
@@ -104,11 +105,18 @@ echo -e "[${GREEN}+${RESET}] Done."
 # Do active scans against the target if enabled
 if [ "$MODE" = "active" ]; then
     # We don't need everything from hakrawler, since we're only after subdomains
+    startFunction "hakrawler"
     hakrawler -js -linkfinder -subs -depth 1 -url "$DOMAIN" -outdir "$SUBS"/hakrawler
     for req in "$SUBS/hakrawler/*"
     do
         awk '/Host:/ {print $2;}' $req >> "$SUBS"/hakrawler.txt
     done
+    echo -e "[${GREEN}+${RESET}] Done."
+
+    # Subscraper
+    startFunction "Subscraper"
+    python "$TOOLS"/subscraper/subscraper.py -u "$DOMAIN" -o "$SUBS"/subscraper.txt
+    echo -e "[${GREEN}+${RESET}] Done."
 fi
 
 echo -e "\n[${GREEN}+${RESET}] Combining and sorting results.."
@@ -123,7 +131,7 @@ echo -e "[${GREEN}+${RESET}] Done."
 # Check subdomains against scope file if given
 if [ ! -z $SCOPE ]; then
     echo -e "\n[${GREEN}+${RESET}] Checking subdomains against scope.."
-    "$HOME"/tools/nscope -t "$SUBS"/all_subdomains -s "$SCOPE" -o "$SUBS"/all_subdomains
+    "$TOOLS"/nscope -t "$SUBS"/all_subdomains -s "$SCOPE" -o "$SUBS"/all_subdomains
     echo -e "[${GREEN}+${RESET}] Done."
 fi
 
