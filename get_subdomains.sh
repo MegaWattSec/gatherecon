@@ -18,7 +18,7 @@ RESULTDIR="$HOME/assets/$DOMAIN/$FOLDERNAME"
 SUBS="$RESULTDIR/subdomains"
 WORDLIST="$RESULTDIR/wordlists"
 IPS="$RESULTDIR/ips"
-MODE=passive
+MODE=active
 SECONDS=0
 
 startFunction() {
@@ -63,6 +63,7 @@ fi
 
 # Begin subdomain enumeration
 echo -e "${MAGENTA}\n--==[ Starting Subdomain Enumeration ]==--${RESET}"
+echo -e "[${GREEN}+${RESET}] Mode: ${RED}${MODE}${RESET}"
 
 # Check for target directories and create them if missing
 for dir in \
@@ -95,22 +96,29 @@ sleep 5
 python3 "$HOME"/tools/github-subdomains.py -t $github_subdomains_token -d "$DOMAIN" | sort -u >> "$SUBS"/github_subdomains.txt
 echo -e "[${GREEN}+${RESET}] Done."
 
+# Using passive mode in amass to stop it from resolving subdomains
 startFunction "amass"
-echo -e "[${GREEN}+${RESET}] Mode: ${RED}${MODE}${RESET}"
-"$HOME"/go/bin/amass enum -"$MODE" -dir "$SUBS"/amass -d "$DOMAIN" -config "$HOME"/GatherRecon/configs/amass.ini -oA "$SUBS"/amass_scan
+"$HOME"/go/bin/amass enum -passive -dir "$SUBS"/amass -d "$DOMAIN" -config "$HOME"/GatherRecon/configs/amass.ini -oA "$SUBS"/amass_scan
 echo -e "[${GREEN}+${RESET}] Done."
+
+# Do active scans against the target if enabled
+if [ "$MODE" = "active" ]; then
+    # We don't need everything from hakrawler, since we're only after subdomains
+    hakrawler -js -linkfinder -subs -depth 1 -url "$DOMAIN" -outdir "$SUBS"/hakrawler
+    for req in "$SUBS/hakrawler/*"
+    do
+        awk '/Host:/ {print $2;}' $req >> "$SUBS"/hakrawler.txt
+    done
+fi
 
 echo -e "\n[${GREEN}+${RESET}] Combining and sorting results.."
 cat "$SUBS"/*.txt | sort -u >"$SUBS"/subdomains
 
 # Resolving domains to prune out the ones that won't resolve
-# - only need to do this if amass is in passive mode
-# - need to include amass output
-if [ "$MODE" = "passive" ]; then
-    echo -e "\n[${GREEN}+${RESET}] Resolving All Subdomains.."
-    shuffledns -list "$SUBS"/subdomains -silent -d "$DOMAIN" -r "$IPS"/resolvers.txt -o "$SUBS"/all_subdomains
-    echo -e "[${GREEN}+${RESET}] Done."
-fi
+# using shuffledns since amass choked up on the resolver list
+echo -e "\n[${GREEN}+${RESET}] Resolving All Subdomains.."
+shuffledns -list "$SUBS"/subdomains -silent -d "$DOMAIN" -r "$IPS"/resolvers.txt -o "$SUBS"/all_subdomains
+echo -e "[${GREEN}+${RESET}] Done."
 
 # Check subdomains against scope file if given
 if [ ! -z $SCOPE ]; then
