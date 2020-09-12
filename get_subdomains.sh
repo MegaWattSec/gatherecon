@@ -106,7 +106,7 @@ echo -e "[${GREEN}+${RESET}] Done."
 if [ "$MODE" = "active" ]; then
     # We don't need everything from hakrawler, since we're only after subdomains
     startFunction "hakrawler"
-    hakrawler -js -linkfinder -subs -depth 1 -url "$DOMAIN" -outdir "$SUBS"/hakrawler
+    hakrawler -js -linkfinder -subs -depth 2 -scope subs -url "$DOMAIN" -outdir "$SUBS"/hakrawler
     for req in "$SUBS/hakrawler/*"
     do
         awk '/Host:/ {print $2;}' $req >> "$SUBS"/hakrawler.txt
