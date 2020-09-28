@@ -1,7 +1,6 @@
 .venv
 .vscode
-gatherrecon.egg-info
 __pycache__
 .pytest_cache
-settings.json
+gatherrecon.egg-info
 *.ipynb*
