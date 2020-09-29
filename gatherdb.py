@@ -18,12 +18,12 @@ except docker.errors.NotFound:
 
 class GatherDb:
 
-    def __init__(self):
+    def __enter__(self):
         self._client = MongoClient()
         self._db = self._client.test_database
         self._collection = self._db.test_collection
 
-    def __del__(self):
+    def __exit__(self, type, value, traceback):
         self._client.close()
 
 
