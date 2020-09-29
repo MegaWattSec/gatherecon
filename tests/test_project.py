@@ -64,7 +64,7 @@ def test_database_type():
     tdomain = "example.com"
     tscope = "*.example.com"
     tproject = Project(tdomain, tscope)
-    assert isinstance(tproject.db, GatherreconDb)
+    assert isinstance(tproject.db, GatherDb)
 
 def test_probe_session_type():
     tdomain = "example.com"
