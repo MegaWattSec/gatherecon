@@ -27,8 +27,8 @@ class GatherDb:
         self._client.close()
 
 
-class SessionList:
-    session_list = None
+class SessionList(list):
+    session_list = []
 
     def __init__(self):
         self.session_list = NotImplemented

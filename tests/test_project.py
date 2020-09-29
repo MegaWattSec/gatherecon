@@ -45,7 +45,8 @@ def test_compare_recon_exists():
     tdomain = "example.com"
     tscope = "*.example.com"
     tproject = Project(tdomain, tscope)
-    assert tproject.compare_recon()
+    tlist = tproject.list_recon()
+    assert tproject.compare_recon(tlist[1])
 
 def test_domain_type():
     tdomain = "example.com"

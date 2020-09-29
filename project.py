@@ -25,5 +25,6 @@ class Project:
     def schedule_recon(self):
         return True
 
-    def compare_recon(self):
-        return True
+    def compare_recon(self, recon1):
+        result = self.current_recon.compare(recon1)
+        return result
