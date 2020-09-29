@@ -16,7 +16,7 @@ except docker.errors.NotFound:
         }
     )
 
-class GatherreconDb:
+class GatherDb:
 
     def __init__(self):
         self._client = MongoClient()
@@ -25,3 +25,10 @@ class GatherreconDb:
 
     def __del__(self):
         self._client.close()
+
+
+class SessionList:
+    session_list = None
+
+    def __init__(self):
+        self.session_list = NotImplemented

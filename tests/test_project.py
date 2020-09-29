@@ -1,6 +1,8 @@
 import pytest
 from project import Project
 from recon import ReconSession
+from gatherdb import GatherDb, SessionList
+from probe import Probe
 
 def test_instantiation_exists():
     tdomain = "example.com"
@@ -57,3 +59,24 @@ def test_current_recon_session_type():
     tproject = Project(tdomain, tscope)
     tproject.start_recon()
     assert isinstance(tproject.current_recon, ReconSession)
+
+def test_database_type():
+    tdomain = "example.com"
+    tscope = "*.example.com"
+    tproject = Project(tdomain, tscope)
+    assert isinstance(tproject.db, GatherreconDb)
+
+def test_probe_session_type():
+    tdomain = "example.com"
+    tscope = "*.example.com"
+    tproject = Project(tdomain, tscope)
+    tprobe = tproject.start_probe()
+    assert isinstance(tprobe, Probe)
+
+def test_list_recon_type():
+    tdomain = "example.com"
+    tscope = "*.example.com"
+    tproject = Project(tdomain, tscope)
+    treconlist = tproject.list_recon()
+    assert isinstance(treconlist, SessionList)
+
