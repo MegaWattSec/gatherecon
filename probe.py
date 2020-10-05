@@ -1,5 +1,4 @@
 from recon import ReconSession
-from gatherdb import GatherDb
 
 class Probe:
     recon_session = None
