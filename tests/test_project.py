@@ -13,7 +13,6 @@ def test_current_recon_session_exists():
     tdomain = "example.com"
     tscope = "*.example.com"
     tproject = Project(tdomain, tscope)
-    tproject.start_recon()
     assert tproject.current_recon
 
 def test_probe_session_exists():
@@ -27,13 +26,6 @@ def test_schedule_recon_exists():
     tscope = "*.example.com"
     tproject = Project(tdomain, tscope)
     assert tproject.schedule_recon()
-
-def test_compare_recon_exists():
-    tdomain = "example.com"
-    tscope = "*.example.com"
-    tproject = Project(tdomain, tscope)
-    tlist = tproject.list_recon()
-    assert tproject.compare_recon(tlist[1])
 
 def test_domain_type():
     tdomain = "example.com"
@@ -54,11 +46,3 @@ def test_probe_session_type():
     tproject = Project(tdomain, tscope)
     tprobe = tproject.start_probe()
     assert isinstance(tprobe, Probe)
-
-def test_list_recon_type():
-    tdomain = "example.com"
-    tscope = "*.example.com"
-    tproject = Project(tdomain, tscope)
-    treconlist = tproject.list_recon()
-    assert isinstance(treconlist, SessionList)
-
