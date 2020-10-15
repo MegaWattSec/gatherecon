@@ -16,7 +16,7 @@ class Project:
         return self.probe
 
     def list_recon(self):
-        return SessionList()
+        return SessionList(self.domain)
 
     def schedule_recon(self):
         return True
