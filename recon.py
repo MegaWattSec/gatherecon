@@ -23,7 +23,7 @@ class ReconSession:
         self._db = self._client[self.config.db_name]
 
         # Return collection
-        self._collection = self._db[self.domain]
+        self._domains = self._db[self.domain]
 
         # Create directory to save session assets
         # Get base asset directory from config
@@ -38,7 +38,7 @@ class ReconSession:
         # Create db document
         # Store session properties in document
         # Keep the document Id for this session
-        insert_result = self._collection.insert_one({ 
+        insert_result = self._domains.insert_one({ 
             'scope': self.scope,
             'path': self.path,
             'date': self.date,
@@ -63,7 +63,7 @@ class ReconSession:
 
     @property
     def db_document(self):
-        return self._collection.find_one({ "_id": self._id })
+        return self._domains.find_one({ "_id": self._id })
 
     def run(self):
         # Run modules in list
@@ -97,7 +97,7 @@ class SessionList:
         self._db = self._client[self.config.db_name]
 
         # Return collection
-        self._collection = self._db[self.domain]
+        self._sessions = self._db[self.domain]
 
     def __enter__(self):
         return self
@@ -106,14 +106,14 @@ class SessionList:
         self._client.close()
 
     def get_sessions(self):
-        self._cursor = self._collection.find()
+        self._cursor = self._sessions.find()
         return self._cursor
 
     def get_count(self):
-        return self._collection.count_documents({})
+        return self._sessions.count_documents({})
 
     def get_previous(self):
-        return self._collection.find({}, sort=[("date", DESCENDING)])[1:2]
+        return self._sessions.find({}, sort=[("date", DESCENDING)])[1:2]
 
 
 
