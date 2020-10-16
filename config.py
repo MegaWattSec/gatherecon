@@ -4,6 +4,8 @@ from ruamel.yaml import RoundTripLoader
 
 class Config:
     configfile = Path.cwd() / "configs" / "gatherecon.yaml"
+    default_host = "localhost"
+    default_name = "gatherdatabase"
 
     def __init__(self):
         try:
@@ -46,8 +48,8 @@ class Config:
                 "tools": str(_tools_path),
             },
             "database": {
-                "host": "localhost", 
-                "name": "gatherdatabase",
+                "host": self.default_host, 
+                "name": self.default_name,
             },
             "modules": _modules,
         })

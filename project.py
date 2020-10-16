@@ -3,10 +3,10 @@ from probe import Probe
 
 class Project:
     
-    def __init__(self, domain, scope):
+    def __init__(self, database, domain, scope):
         self.domain = domain
         self.scope = scope
-        self.current_recon = ReconSession(self.domain, self.scope)
+        self.current_recon = ReconSession(database, self.domain, self.scope)
 
     def start_recon(self):
         return self.current_recon

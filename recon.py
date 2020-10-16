@@ -8,7 +8,7 @@ from config import Config
 
 class ReconSession:
     
-    def __init__(self, domain, scope):
+    def __init__(self, database, domain, scope):
         self.domain = domain
         self.scope = scope
         self.date = dt.now()
@@ -20,14 +20,25 @@ class ReconSession:
         self._client = MongoClient(self.config.db_host)
 
         # Get Mongo Database
-        self._db = self._client[self.config.db_name]
+        self._db = self._client[database]
 
-        # Return collection
-        self._domains = self._db[self.domain]
+        # Create Session document
+        ## Get Sessions collection
+        ## Add a document for this session
+        self._sessions = self._db["Sessions"]
+        self.current_session = self._sessions.insert_one({
+            "_schema": 1,
+            #"target": NotImplemented,
+            "started": dt.now(),
+            "finished": None,
+        })
 
-        # Create directory to save session assets
-        # Get base asset directory from config
-        # then create unique subdirectory
+        # Return Domains collection
+        self._domains = self._db["Domains"]
+
+        # Create directory to save assets for domain
+        ## Get base asset directory from config
+        ## then create unique subdirectory
         self._assets = Path.home() / 'assets'
         self._session_path = self._assets / self.domain / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
         self._session_path.mkdir(parents=True, exist_ok=True)
@@ -97,7 +108,7 @@ class SessionList:
         self._db = self._client[self.config.db_name]
 
         # Return collection
-        self._sessions = self._db[self.domain]
+        self._sessions = self._db["Sessions"]
 
     def __enter__(self):
         return self
@@ -114,6 +125,9 @@ class SessionList:
 
     def get_previous(self):
         return self._sessions.find({}, sort=[("date", DESCENDING)])[1:2]
+
+    def get_latest(self):
+        return self._sessions.find({}, sort=[("date", DESCENDING)])[0:1]
 
 
 
