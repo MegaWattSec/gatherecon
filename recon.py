@@ -13,6 +13,13 @@ class ReconSession:
         self.scope = scope
         self.date = dt.now()
 
+        # Create directory to save assets for domain
+        ## Get base asset directory from config
+        ## then create unique subdirectory
+        self._assets = Path.home() / 'assets'
+        self._session_path = self._assets / self.domain / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
+        self._session_path.mkdir(parents=True, exist_ok=True)
+
         # Load config
         self.config = Config()
 
@@ -22,37 +29,46 @@ class ReconSession:
         # Get Mongo Database
         self._db = self._client[database]
 
+        # Find Target document or
+        # Add document to Targets collection
+        self._targets = self._db["Targets"]
+        self.target_document = self._targets.insert_one({
+            "_schema": 1,
+            "path": self.path,
+            "scope": self.scope,
+            "target": self.domain,
+            "asn": None,
+            "githubs": None,
+            "domains": [],
+            "hosts": [],
+        })
+
+        # Get modules from config
+        self.modules = self.config.modules
+
         # Create Session document
         ## Get Sessions collection
         ## Add a document for this session
         self._sessions = self._db["Sessions"]
         self.current_session = self._sessions.insert_one({
             "_schema": 1,
-            #"target": NotImplemented,
+            "target": self.target_document.inserted_id,
             "started": dt.now(),
             "finished": None,
+            "modules": self.modules,
         })
 
         # Return Domains collection
         self._domains = self._db["Domains"]
 
-        # Create directory to save assets for domain
-        ## Get base asset directory from config
-        ## then create unique subdirectory
-        self._assets = Path.home() / 'assets'
-        self._session_path = self._assets / self.domain / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
-        self._session_path.mkdir(parents=True, exist_ok=True)
-
-        # Get modules from config
-        self.modules = self.config.modules
-
-        # Create db document
-        # Store session properties in document
+        # Create domain document
         # Keep the document Id for this session
         insert_result = self._domains.insert_one({ 
             'scope': self.scope,
             'path': self.path,
             'date': self.date,
+            "name": self.domain,
+            "subdomains": [],
         })
         self._id = insert_result.inserted_id
         

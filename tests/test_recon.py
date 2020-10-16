@@ -99,3 +99,12 @@ def test_modules_list():
     assert Path(trecon.modules[0]).exists()
     trecon._db.Domains.remove({})
     trecon._db.Sessions.remove({})
+
+# Test for the Target collection
+def test_target_collection():
+    tdomain = "example.com"
+    tscope = "*.example.com"
+    trecon = ReconSession("test", tdomain, tscope)
+    assert trecon._db.Targets.count_documents({}) >= 1
+    trecon._db.Domains.remove({})
+    trecon._db.Sessions.remove({})
