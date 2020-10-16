@@ -95,7 +95,7 @@ class ReconSession:
 
 class SessionList:
 
-    def __init__(self, domain):
+    def __init__(self, database, domain):
         self.domain = domain
 
         # Load config
@@ -105,7 +105,7 @@ class SessionList:
         self._client = MongoClient(self.config.db_host)
 
         # Get Mongo Database
-        self._db = self._client[self.config.db_name]
+        self._db = self._client[database]
 
         # Return collection
         self._sessions = self._db["Sessions"]

@@ -10,6 +10,8 @@ def test_session_date():
     tscope = "*.example.com"
     tsession = ReconSession("test", tdomain, tscope)
     assert isinstance(tsession.date, datetime)
+    tsession._db.Domains.remove({})
+    tsession._db.Sessions.remove({})
 
 # Test for a successful MongoDb connection
 def test_database():
@@ -17,6 +19,8 @@ def test_database():
     tscope = "*.example.com"
     tsession = ReconSession("test", tdomain, tscope)
     assert tsession._client
+    tsession._db.Domains.remove({})
+    tsession._db.Sessions.remove({})
 
 # Test that recon session path is a valid directory
 def test_path():
@@ -24,6 +28,8 @@ def test_path():
     tscope = "*.example.com"
     tsession = ReconSession("test", tdomain, tscope)
     assert Path(tsession.path).exists()
+    tsession._db.Domains.remove({})
+    tsession._db.Sessions.remove({})
 
 # Test for the session by returned ID
 def test_session_id():
@@ -32,6 +38,8 @@ def test_session_id():
     tsession = ReconSession("test", tdomain, tscope)
     print("\n\nSession ID: " + tsession.id)
     assert tsession.id
+    tsession._db.Domains.remove({})
+    tsession._db.Sessions.remove({})
 
 # Test that scope is being saved in the database
 def test_session_scope():
@@ -41,6 +49,8 @@ def test_session_scope():
     with tsession as ts:
         print("\n\nDocument: " + str(ts.db_document))
         assert ts.db_document["scope"] == tscope
+        tsession._db.Domains.remove({})
+        tsession._db.Sessions.remove({})
 
 # Test for recon session modules list
 def test_modules_list():
@@ -48,6 +58,8 @@ def test_modules_list():
     tscope = "*.example.com"
     tsession = ReconSession("test", tdomain, tscope)
     assert tsession.modules
+    tsession._db.Domains.remove({})
+    tsession._db.Sessions.remove({})
 
 # Test for session list count
 def test_session_list():
@@ -55,8 +67,10 @@ def test_session_list():
     tscope = "*.example.com"
     # create an unused session to have at least 1 in the list
     ReconSession("test", tdomain, tscope)
-    tsessions = SessionList(tdomain)
+    tsessions = SessionList("test", tdomain)
     assert tsessions.get_count() >= 1
+    tsessions._db.Domains.remove({})
+    tsessions._db.Sessions.remove({})
 
 # Test for latest session
 def test_latest_session():
@@ -64,17 +78,21 @@ def test_latest_session():
     tscope = "*.example.com"
     # create an unused session to have at least 1 in the list
     ReconSession("test", tdomain, tscope)
-    tsessions = SessionList(tdomain)
+    tsessions = SessionList("test", tdomain)
     assert isinstance(tsessions.get_latest(), pymongo.cursor.Cursor)
+    tsessions._db.Domains.remove({})
+    tsessions._db.Sessions.remove({})
 
 # Test the session compare method
 def test_compare():
     tdomain = "example.com"
     tscope = "*.example.com"
     tsession = ReconSession("test", tdomain, tscope)
-    with SessionList(tdomain) as slist:
+    with SessionList("test", tdomain) as slist:
         srecent = slist.get_previous()
         if srecent:
             assert not tsession.compare(srecent[0])
         else:
             assert False
+        tsession._db.Domains.remove({})
+        tsession._db.Sessions.remove({})
