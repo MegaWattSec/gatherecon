@@ -5,6 +5,15 @@ from pathlib import Path
 from datetime import datetime
 from recon import ReconSession, SessionList
 
+# Test for a successful MongoDb connection
+def test_database():
+    tdomain = "example.com"
+    tscope = "*.example.com"
+    trecon = ReconSession("test", tdomain, tscope)
+    assert trecon._client
+    trecon._db.Domains.remove({})
+    trecon._db.Sessions.remove({})
+
 # Test for session list count
 def test_session_count():
     tdomain = "example.com"
@@ -20,7 +29,6 @@ def test_session_count():
 def test_sessions_list():
     tdomain = "example.com"
     tscope = "*.example.com"
-    # create an unused session to have at least 1 in the list
     ReconSession("test", tdomain, tscope)
     tsessions = SessionList("test", tdomain)
     assert isinstance(tsessions.get_sessions(), pymongo.cursor.Cursor)
@@ -31,7 +39,6 @@ def test_sessions_list():
 def test_latest_session():
     tdomain = "example.com"
     tscope = "*.example.com"
-    # create an unused session to have at least 1 in the list
     ReconSession("test", tdomain, tscope)
     tsessions = SessionList("test", tdomain)
     assert isinstance(tsessions.get_latest(), pymongo.cursor.Cursor)
@@ -42,7 +49,6 @@ def test_latest_session():
 def test_previous_session():
     tdomain = "example.com"
     tscope = "*.example.com"
-    # create an unused session to have at least 1 in the list
     ReconSession("test", tdomain, tscope)
     tsessions = SessionList("test", tdomain)
     assert isinstance(tsessions.get_previous(), pymongo.cursor.Cursor)
@@ -54,15 +60,6 @@ def test_recon_date():
     tscope = "*.example.com"
     trecon = ReconSession("test", tdomain, tscope)
     assert isinstance(trecon.date, datetime)
-    trecon._db.Domains.remove({})
-    trecon._db.Sessions.remove({})
-
-# Test for a successful MongoDb connection
-def test_database():
-    tdomain = "example.com"
-    tscope = "*.example.com"
-    trecon = ReconSession("test", tdomain, tscope)
-    assert trecon._client
     trecon._db.Domains.remove({})
     trecon._db.Sessions.remove({})
 
@@ -99,21 +96,6 @@ def test_modules_list():
     tdomain = "example.com"
     tscope = "*.example.com"
     trecon = ReconSession("test", tdomain, tscope)
-    assert trecon.modules
+    assert Path(trecon.modules[0]).exists()
     trecon._db.Domains.remove({})
     trecon._db.Sessions.remove({})
-
-# Test the compare method
-def test_compare():
-    tdomain = "example.com"
-    tscope = "*.example.com"
-    ReconSession("test", tdomain, tscope)
-    trecon = ReconSession("test", tdomain, tscope)
-    with SessionList("test", tdomain) as slist:
-        srecent = slist.get_previous()
-        if srecent:
-            assert not trecon.compare(srecent[0])
-        else:
-            assert False
-        trecon._db.Domains.remove({})
-        trecon._db.Sessions.remove({})

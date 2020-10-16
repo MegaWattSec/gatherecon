@@ -83,15 +83,6 @@ class ReconSession:
 
         return True
 
-    def compare(self, recent):
-        # Compare current session properties to given session and discards equivalent fields
-        print("\n\nRecent ID: " + str(recent["_id"]))
-        print("Current ID: " + self.id)
-        if str(recent["_id"]) == self.id:
-            return True
-        else:
-            return False
-
 
 class SessionList:
 
