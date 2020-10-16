@@ -87,6 +87,7 @@ def test_latest_session():
 def test_compare():
     tdomain = "example.com"
     tscope = "*.example.com"
+    ReconSession("test", tdomain, tscope)
     tsession = ReconSession("test", tdomain, tscope)
     with SessionList("test", tdomain) as slist:
         srecent = slist.get_previous()
