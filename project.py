@@ -1,5 +1,6 @@
 from recon import ReconSession, SessionList
 from probe import Probe
+from config import Config
 
 class Project:
     
@@ -16,11 +17,8 @@ class Project:
         return self.probe
 
     def list_recon(self):
-        return SessionList(self.domain)
+        config = Config()
+        return SessionList(config.db_name, self.domain)
 
     def schedule_recon(self):
         return True
-
-    def compare_recon(self, recon1):
-        result = self.current_recon.compare(recon1)
-        return result
