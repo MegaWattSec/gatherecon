@@ -8,7 +8,7 @@ from config import Config
 
 class ReconSession:
     
-    def __init__(self, database, domain, scope):
+    def __init__(self, domain, scope):
         self.domain = domain
         self.scope = scope
         self.date = dt.now()
@@ -27,7 +27,7 @@ class ReconSession:
         self._client = MongoClient(self.config.db_host)
 
         # Get Mongo Database
-        self._db = self._client[database]
+        self._db = self._client[self.config.db_name]
 
         # Find Target document or
         # Add document to Targets collection
@@ -102,7 +102,7 @@ class ReconSession:
 
 class SessionList:
 
-    def __init__(self, database, domain):
+    def __init__(self, domain):
         self.domain = domain
 
         # Load config
@@ -112,7 +112,7 @@ class SessionList:
         self._client = MongoClient(self.config.db_host)
 
         # Get Mongo Database
-        self._db = self._client[database]
+        self._db = self._client[self.config.db_name]
 
         # Return collection
         self._sessions = self._db["Sessions"]

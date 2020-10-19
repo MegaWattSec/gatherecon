@@ -23,6 +23,11 @@ class Config:
     def db_name(self):
         return self.box.database.name
 
+    @db_name.setter
+    def db_name(self, name):
+        self.box.database.update({"name": name})
+        Box.to_yaml(self.box, filename=self.configfile)
+
     @property
     def modules(self):
         return self.box.modules.to_list()
