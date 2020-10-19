@@ -4,10 +4,10 @@ from config import Config
 
 class Project:
     
-    def __init__(self, database, domain, scope):
+    def __init__(self, domain, scope):
         self.domain = domain
         self.scope = scope
-        self.current_recon = ReconSession(database, self.domain, self.scope)
+        self.current_recon = ReconSession(self.domain, self.scope)
 
     def start_recon(self):
         return self.current_recon
@@ -18,7 +18,7 @@ class Project:
 
     def list_recon(self):
         config = Config()
-        return SessionList(config.db_name, self.domain)
+        return SessionList(self.domain)
 
     def schedule_recon(self):
         return True
