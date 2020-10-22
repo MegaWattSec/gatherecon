@@ -3,7 +3,7 @@ import pytest
 import pymongo
 from pathlib import Path
 from datetime import datetime
-from recon import ReconSession, SessionList
+from recon import ReconSession
 from config import Config
 
 # Test a config file update
@@ -36,8 +36,7 @@ def test_session_count():
     tdomain = "example.com"
     tscope = "*.example.com"
     # create an unused session to have at least 1 in the list
-    ReconSession(tdomain, tscope)
-    tsessions = SessionList(tdomain)
+    tsessions = ReconSession(tdomain, tscope)
     assert tsessions.get_count() >= 1
     tconfig.db_name = db_old
 
@@ -48,8 +47,7 @@ def test_sessions_list():
     tconfig.db_name = "test"
     tdomain = "example.com"
     tscope = "*.example.com"
-    ReconSession(tdomain, tscope)
-    tsessions = SessionList(tdomain)
+    tsessions = ReconSession(tdomain, tscope)
     assert isinstance(tsessions.get_sessions(), pymongo.cursor.Cursor)
     tconfig.db_name = db_old
 
@@ -60,8 +58,7 @@ def test_latest_session():
     tconfig.db_name = "test"
     tdomain = "example.com"
     tscope = "*.example.com"
-    ReconSession(tdomain, tscope)
-    tsessions = SessionList(tdomain)
+    tsessions = ReconSession(tdomain, tscope)
     assert isinstance(tsessions.get_latest(), pymongo.cursor.Cursor)
     tconfig.db_name = db_old
 
@@ -72,8 +69,7 @@ def test_previous_session():
     tconfig.db_name = "test"
     tdomain = "example.com"
     tscope = "*.example.com"
-    ReconSession(tdomain, tscope)
-    tsessions = SessionList(tdomain)
+    tsessions = ReconSession(tdomain, tscope)
     assert isinstance(tsessions.get_previous(), pymongo.cursor.Cursor)
     tconfig.db_name = db_old
 

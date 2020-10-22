@@ -92,37 +92,6 @@ class ReconSession:
     def db_document(self):
         return self._domains.find_one({ "_id": self._id })
 
-    def run(self):
-        # Run modules in list
-
-        # Store asset metadata in document
-
-        return True
-
-
-class SessionList:
-
-    def __init__(self, domain):
-        self.domain = domain
-
-        # Load config
-        self.config = Config()
-
-        # Setup MongoClient
-        self._client = MongoClient(self.config.db_host)
-
-        # Get Mongo Database
-        self._db = self._client[self.config.db_name]
-
-        # Return collection
-        self._sessions = self._db["Sessions"]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self._client.close()
-
     def get_sessions(self):
         self._cursor = self._sessions.find()
         return self._cursor
@@ -136,6 +105,12 @@ class SessionList:
     def get_latest(self):
         return self._sessions.find({}, sort=[("date", DESCENDING)])[0:1]
 
+    def run(self):
+        # Run modules in list
+
+        # Store asset metadata in document
+
+        return True
 
 
 _dclient = docker.from_env()
