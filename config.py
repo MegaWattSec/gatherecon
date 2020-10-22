@@ -19,6 +19,11 @@ class Config:
     def db_host(self):
         return self.box.database.host
 
+    @db_host.setter
+    def db_host(self, host):
+        self.box.database.update({"host": host})
+        Box.to_yaml(self.box, filename=self.configfile)
+
     @property
     def db_name(self):
         return self.box.database.name
@@ -31,6 +36,11 @@ class Config:
     @property
     def modules(self):
         return self.box.modules.to_list()
+
+    @modules.setter
+    def modules(self, module_list):
+        self.box.update({"modules": module_list})
+        Box.to_yaml(self.box, filename=self.configfile)
 
     def _create(self, file):
         # define paths with local variables

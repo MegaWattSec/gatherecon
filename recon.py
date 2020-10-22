@@ -105,6 +105,16 @@ class ReconSession:
     def get_latest(self):
         return self._sessions.find({}, sort=[("date", DESCENDING)])[0:1]
 
+    def check_modules(self):
+        result = True
+        for mod in self.modules:
+            # this just checks for the file existing
+            # TODO: need a test for loading the module
+            if not Path(mod).exists():
+                print(f"Module {mod} failed to load properly.")
+                result = False
+        return result
+
     def run(self):
         # Run modules in list
 

@@ -1,5 +1,5 @@
 import random
-import pytest
+import pytest_check as check
 import pymongo
 from pathlib import Path
 from datetime import datetime
@@ -35,7 +35,6 @@ def test_session_count():
     tconfig.db_name = "test"
     tdomain = "example.com"
     tscope = "*.example.com"
-    # create an unused session to have at least 1 in the list
     tsessions = ReconSession(tdomain, tscope)
     assert tsessions.get_count() >= 1
     tconfig.db_name = db_old
@@ -125,8 +124,21 @@ def test_modules_list():
     tdomain = "example.com"
     tscope = "*.example.com"
     trecon = ReconSession(tdomain, tscope)
-    assert Path(trecon.modules[0]).exists()
+    assert trecon.check_modules()
     tconfig.db_name = db_old
+
+def test_modules_list_fail():
+    tconfig = Config()
+    db_old = tconfig.db_name
+    tconfig.db_name = "test"
+    modules_old = tconfig.modules
+    tconfig.modules = modules_old + ["thiswillfail.sh"]
+    tdomain = "example.com"
+    tscope = "*.example.com"
+    trecon = ReconSession(tdomain, tscope)
+    check.is_false(trecon.check_modules())
+    tconfig.db_name = db_old
+    tconfig.modules = modules_old
 
 # Test for the Target collection
 def test_target_collection():
