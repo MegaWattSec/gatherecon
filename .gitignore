@@ -1,6 +1,7 @@
 .venv
 .vscode
 .notes
+configs
 __pycache__
 .pytest_cache
 gatherrecon.egg-info
