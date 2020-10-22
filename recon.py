@@ -14,8 +14,7 @@ class ReconSession:
         self.date = dt.now()
 
         # Create directory to save assets for domain
-        ## Get base asset directory from config
-        ## then create unique subdirectory
+        # this should create an appropriate path depending on platform
         self._assets = Path.home() / 'assets'
         self._session_path = self._assets / self.domain / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
         self._session_path.mkdir(parents=True, exist_ok=True)
