@@ -1,4 +1,3 @@
-import pytest
 import pytest_check as check
 import random
 from config import Config
