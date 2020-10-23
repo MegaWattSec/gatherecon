@@ -27,35 +27,54 @@ startFunction() {
     echo -e "\n[${GREEN}+${RESET}] Starting $tool"
 }
 
+install() {
+    # TODO: Create install routine
+    return 0
+}
+
 usage() { 
     echo "Usage:"
     echo "    -d            Domain to discover subdomains from"
     echo "    -s            BurpSuite scope file to validate subdomains with"
-    echo "    -p            active recon mode"
+    echo "    -a            Active recon mode"
+    echo "    --install     Install and verify needed tools"
     exit 1
 }
 
 # Display help text when no arguments are given, otherwise process arguments
-while getopts ":d:s:p" opt; do
-    case "${opt}" in
-        d) #### Domain to retrieve subdomains from
-            DOMAIN=${OPTARG}
+PARSED_ARGUMENTS=$(getopt -a -o d:s:a --long install -- "$@")
+VALID_ARGUMENTS=$?
+if [ "$VALID_ARGUMENTS" != "0"]; then
+    usage
+fi
+eval set -- "$PARSED_ARGUMENTS"
+while true; do
+    case "$1" in
+        -d) #### Domain to retrieve subdomains from
+            shift; # The arg is next in position args
+            DOMAIN=$1
             ;;
-        s) #### Process JSON scope files from BurpSuite for URL lists
-            SCOPE=${OPTARG}
+        -s) #### Process JSON scope files from BurpSuite for URL lists
+            shift
+            SCOPE=$1
             ;;
-        a) #### active recon mode
+        -a) #### active recon mode
             MODE=active
             ;;
-        \?)
-            usage
+        --install)  #### install and verify
+            install
+            exit $?
             ;;
-        :)
-            echo "Invalid option: $OPTARG requires an argument" 1>&2
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Invalid option: $1 requires an argument" 1>&2
+            usage
             ;;
     esac
 done
-shift $((OPTIND - 1))
 
 if [[ -z $DOMAIN ]]; then
     usage
