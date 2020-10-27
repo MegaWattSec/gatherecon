@@ -1,6 +1,5 @@
-from box import Box, BoxError, BoxList
 from pathlib import Path
-from ruamel.yaml import RoundTripLoader
+from ruamel.yaml import YAML
 
 class Config:
     configfile = Path.cwd() / "configs" / "gatherecon.yaml"
@@ -9,66 +8,70 @@ class Config:
 
     def __init__(self):
         try:
-            self.box = Box.from_yaml(filename = str(self.configfile), Loader = RoundTripLoader)
-        except BoxError as e:
-            if "does not exist" in str(e):
-                self._create(self.configfile)
-                self.box = Box.from_yaml(filename = str(self.configfile), Loader = RoundTripLoader)
+            self.yaml = YAML()
+            self.cfg = self.yaml.load(self.configfile)
+        except FileNotFoundError:
+            self._create(self.configfile)
+            #self.cfg = self.yaml.load(self.configfile)
 
     @property
     def db_host(self):
-        return self.box.database.host
+        return self.cfg["database"]["host"]
 
     @db_host.setter
     def db_host(self, host):
-        self.box.database.update({"host": host})
-        Box.to_yaml(self.box, filename=self.configfile)
+        self.cfg["database"]["host"] = host
+        self.yaml.dump(self.cfg, self.configfile)
 
     @property
     def db_name(self):
-        return self.box.database.name
+        return self.cfg["database"]["name"]
 
     @db_name.setter
     def db_name(self, name):
-        self.box.database.update({"name": name})
-        Box.to_yaml(self.box, filename=self.configfile)
+        self.cfg["database"]["name"] = name
+        self.yaml.dump(self.cfg, self.configfile)
 
     @property
     def modules(self):
-        return self.box.modules.to_list()
+        modlist = []
+        for mod in self.cfg["modules"]:
+            modlist.append(mod)
+        return modlist
 
-    @modules.setter
-    def modules(self, module_list):
-        self.box.update({"modules": module_list})
-        Box.to_yaml(self.box, filename=self.configfile)
+    def _create(self, cfile):
+        try:
+            # define paths with local variables
+            _basedir_path = Path.home()
+            _assets_path = _basedir_path / "assets"
+            _tools_path = _basedir_path / "tools"
+            _modules_path = _basedir_path / "modules"
 
-    def _create(self, file):
-        # define paths with local variables
-        _basedir_path = Path.cwd()
-        _assets_path = _basedir_path / "assets"
-        _tools_path = _basedir_path / "tools"
-        _modules_path = _basedir_path / "modules"
+            # populate modules based on what's in the modules dir
+            _modules = []
+            for mod in Path.iterdir(_modules_path):
+                _modules.append({mod.stem : {"name": mod.stem, 
+                                            "path": str(mod), 
+                                            "input": ""}})
 
-        # populate modules based on what's in the modules dir
-        _modules = []
-        for mod in Path.iterdir(_modules_path):
-            _modules.append(str(mod))
+            # put default properties into the Box object
+            newcfg = { 
+                "paths": {
+                    "basedir": str(_basedir_path),
+                    "assets": str(_assets_path),
+                    "modules": str(_modules_path),
+                    "tools": str(_tools_path),
+                },
+                "database": {
+                    "host": self.default_host, 
+                    "name": self.default_name,
+                },
+                "modules": _modules,
+            }
 
-        # put default properties into the Box object
-        cfg_box = Box({ 
-            "paths": {
-                "basedir": str(_basedir_path),
-                "assets": str(_assets_path),
-                "modules": str(_modules_path),
-                "tools": str(_tools_path),
-            },
-            "database": {
-                "host": self.default_host, 
-                "name": self.default_name,
-            },
-            "modules": _modules,
-        })
+            # Write YAML config file
+            self.yaml.dump(newcfg, cfile)
 
-        # Write Box object to YAML config file
-        Box.to_yaml(cfg_box, filename=self.configfile)
-        return True
+            return True
+        except:
+            return False

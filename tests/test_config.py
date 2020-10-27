@@ -1,8 +1,6 @@
 import pytest_check as check
-import random
 from config import Config
 from pathlib import Path
-from box import BoxError, BoxList
 
 def test_config_file():
     cfg = Config()
@@ -33,13 +31,5 @@ def test_name_change():
 def test_modules():
     cfg = Config()
     print("\n\nModules available: ")
-    for mod in cfg.modules:
-        print(mod)
+    print(cfg.modules)
     assert isinstance(cfg.modules, list)
-
-def test_modules_change():
-    cfg = Config()
-    modules_old = cfg.modules
-    cfg.modules = ["testmodulesstring"]
-    check.equal(cfg.modules, ["testmodulesstring"])
-    cfg.modules = modules_old
