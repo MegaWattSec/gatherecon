@@ -22,6 +22,10 @@ TOOLS="$HOME/tools"
 MODE=active
 SECONDS=0
 
+try() {
+    "$@" || {e=$?; echo "ERROR: ${@}"; exit $e}
+}
+
 startFunction() {
     tool=$1
     echo -e "\n[${GREEN}+${RESET}] Starting $tool"
@@ -29,7 +33,37 @@ startFunction() {
 
 install() {
     # TODO: Create install routine
-    return 0
+
+    ## Check if tools are installed and updated
+    mkdir -p $TOOLS
+    git_tools=(
+        "https://github.com/Abss0x7tbh/bass"
+        "https://github.com/projectdiscovery/subfinder"
+        "https://github.com/gwen001/github-subdomains"
+        "https://github.com/OWASP/Amass"
+        "https://github.com/hakluke/hakrawler"
+        "https://github.com/m8r0wn/subscraper"
+        "https://github.com/projectdiscovery/shuffledns"
+        "https://github.com/ponderng/nscope"
+    )
+    for i in "${git_tools[@]}"
+    do
+        cd $TOOLS
+        j=${i##*/}  #This will capture the basename without a call
+        result=0
+        if [ ! -d $j/.git ]; then
+            # If not already, then clone the repo
+            try /usr/bin/git clone $i
+            result=$?
+        else
+            echo "${i} already exists"
+        fi
+    done
+
+    ## Download anything needed
+    ### then run any setup files
+
+    exit 0
 }
 
 usage() { 
@@ -63,7 +97,6 @@ while true; do
             ;;
         --install)  #### install and verify
             install
-            exit $?
             ;;
         --)
             shift
