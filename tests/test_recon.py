@@ -117,7 +117,7 @@ def test_recon_scope():
     tconfig.db_name = db_old
 
 # Test for recon session modules list
-def test_modules_list():
+def test_modules_check():
     tconfig = Config()
     db_old = tconfig.db_name
     tconfig.db_name = "test"
@@ -126,19 +126,6 @@ def test_modules_list():
     trecon = ReconSession(tdomain, tscope)
     assert trecon.check_modules()
     tconfig.db_name = db_old
-
-def test_modules_list_fail():
-    tconfig = Config()
-    db_old = tconfig.db_name
-    tconfig.db_name = "test"
-    modules_old = tconfig.modules
-    tconfig.modules = modules_old + ["thiswillfail.sh"]
-    tdomain = "example.com"
-    tscope = "*.example.com"
-    trecon = ReconSession(tdomain, tscope)
-    check.is_false(trecon.check_modules())
-    tconfig.db_name = db_old
-    tconfig.modules = modules_old
 
 # Test for the Target collection
 def test_target_collection():

@@ -36,7 +36,7 @@ class Config:
     def modules(self):
         modlist = []
         for mod in self.cfg["modules"]:
-            modlist.append(mod)
+            modlist.append(self.cfg["modules"][mod]["path"])
         return modlist
 
     def _create(self, cfile):
@@ -48,9 +48,9 @@ class Config:
             _modules_path = _basedir_path / "modules"
 
             # populate modules based on what's in the modules dir
-            _modules = []
+            _modules = {}
             for mod in Path.iterdir(_modules_path):
-                _modules.append({mod.stem : {"name": mod.stem, 
+                _modules.update({mod.stem : {"name": mod.stem, 
                                             "path": str(mod), 
                                             "input": ""}})
 
