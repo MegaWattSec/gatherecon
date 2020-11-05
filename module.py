@@ -1,31 +1,47 @@
-from config import Config
-import subprocess
-from ruamel.yaml import YAML
+from subprocess import run, CalledProcessError
 
 class Module():
+    target = ""
+    scope = ""
+    modfile = ""
+    options = ""
+    input = []
+    depends = ""
+    tools = []
 
-    def __init__(self, module):
-        self.module = module
+    def __init__(self, target, scope):
+        self.target = target
+        self.scope = scope
 
-        # Get module details from YAML file
-        # config = Config()
-        # module_details = config.modules["get_subdomains"]
-        yaml = YAML()
-        with open("configs/gatherecon.yaml") as fp:
-            data = yaml.load(fp)
-        
-        self.input = data["modules"]["get_subdomains"]["input"]
-
-    def check(self):
+    def install(self):
         # Run module's install and verify function
         # Modules must have '--install' available, which
         # must complete and return a '0' for good result, or error code
-        process = subprocess.run(
-            [self.module, '--install'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        if process.returncode is not 0:
-            print("Return code: " + str(process.returncode))
-            print("Output: " + process.stdout.decode("utf-8"))
-        return process.returncode
+        try:
+            process = run(
+                [self.modfile, '--install'],
+                capture_output=True,
+                check=True,
+                encoding='utf-8'
+            )
+        except CalledProcessError as e:
+            print("Return code: " + e.returncode)
+            print("Output: " + e.stdout)
+        finally:
+            return process.returncode
+
+    def run(self):
+        # Execute the module and return the stdout
+        # The modules should prefer stdout over stderr
+        try:
+            process = run(
+                [self.modfile, self.options],
+                capture_output=True,
+                check=True,
+                encoding='utf-8'
+            )
+        except CalledProcessError as e:
+            print("\n\nRun Command: " + e.cmd)
+            print("\n\nOutput: " + e.output)
+        finally:
+            return process.stdout
