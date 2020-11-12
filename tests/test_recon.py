@@ -124,7 +124,11 @@ def test_modules_check():
     tdomain = "example.com"
     tscope = "*.example.com"
     trecon = ReconSession(tdomain, tscope)
-    assert trecon.check_modules()
+    print(trecon.module_list)
+    if not trecon.module_list:
+        assert False
+    for mod in trecon.module_list:
+        assert trecon.check_module(mod)
     tconfig.db_name = db_old
 
 # Test for the Target collection

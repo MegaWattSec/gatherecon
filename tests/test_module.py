@@ -1,6 +1,5 @@
 import pytest_check as check
 from pathlib import Path
-from module import Module
 from modules.getsubdomains import GetSubdomains
 
 def test_module_runfile_exists():

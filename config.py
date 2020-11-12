@@ -33,6 +33,10 @@ class Config:
         self.yaml.dump(self.cfg, self.configfile)
 
     @property
+    def mod_path(self):
+        return self.cfg["paths"]["modules"]
+
+    @property
     def modules(self):
         modlist = []
         for mod in self.cfg["modules"]:
@@ -45,28 +49,18 @@ class Config:
             _basedir_path = Path.home()
             _assets_path = _basedir_path / "assets"
             _tools_path = _basedir_path / "tools"
-            _modules_path = _basedir_path / "modules"
-
-            # populate modules based on what's in the modules dir
-            _modules = {}
-            for mod in Path.iterdir(_modules_path):
-                _modules.update({mod.stem : {"name": mod.stem, 
-                                            "path": str(mod), 
-                                            "input": ""}})
 
             # put default properties into the Box object
             newcfg = { 
                 "paths": {
                     "basedir": str(_basedir_path),
                     "assets": str(_assets_path),
-                    "modules": str(_modules_path),
                     "tools": str(_tools_path),
                 },
                 "database": {
                     "host": self.default_host, 
                     "name": self.default_name,
                 },
-                "modules": _modules,
             }
 
             # Write YAML config file
