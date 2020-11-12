@@ -1,6 +1,6 @@
 from subprocess import run, CalledProcessError
 
-class Module():
+class Component():
     target = ""
     scope = ""
     modfile = ""
@@ -14,8 +14,8 @@ class Module():
         self.scope = scope
 
     def install(self):
-        # Run module's install and verify function
-        # Modules must have '--install' available, which
+        # Run component's install and verify function
+        # components must have '--install' available, which
         # must complete and return a '0' for good result, or error code
         try:
             process = run(
@@ -31,8 +31,8 @@ class Module():
             return process.returncode
 
     def run(self):
-        # Execute the module and return the stdout
-        # The modules should prefer stdout over stderr
+        # Execute the component and return the stdout
+        # The components should prefer stdout over stderr
         try:
             process = run(
                 [self.modfile, self.options],

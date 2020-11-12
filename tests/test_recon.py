@@ -116,19 +116,19 @@ def test_recon_scope():
         assert ts.db_document["scope"] == tscope
     tconfig.db_name = db_old
 
-# Test for recon session modules list
-def test_modules_check():
+# Test for recon session components list
+def test_components_check():
     tconfig = Config()
     db_old = tconfig.db_name
     tconfig.db_name = "test"
     tdomain = "example.com"
     tscope = "*.example.com"
     trecon = ReconSession(tdomain, tscope)
-    print(trecon.module_list)
-    if not trecon.module_list:
+    print(trecon.component_list)
+    if not trecon.component_list:
         assert False
-    for mod in trecon.module_list:
-        assert trecon.check_module(mod)
+    for mod in trecon.component_list:
+        assert trecon.check_component(mod)
     tconfig.db_name = db_old
 
 # Test for the Target collection

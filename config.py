@@ -32,17 +32,6 @@ class Config:
         self.cfg["database"]["name"] = name
         self.yaml.dump(self.cfg, self.configfile)
 
-    @property
-    def mod_path(self):
-        return self.cfg["paths"]["modules"]
-
-    @property
-    def modules(self):
-        modlist = []
-        for mod in self.cfg["modules"]:
-            modlist.append(self.cfg["modules"][mod]["path"])
-        return modlist
-
     def _create(self, cfile):
         try:
             # define paths with local variables

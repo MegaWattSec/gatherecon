@@ -3,8 +3,8 @@ from datetime import datetime as dt
 from pathlib import Path
 from pymongo import MongoClient, DESCENDING
 from config import Config
-import modules
-from module import Module
+import components
+from component import Component
 from importlib import import_module
 from pkgutil import iter_modules
 
@@ -44,17 +44,17 @@ class ReconSession:
             "hosts": [],
         })
 
-        # Create module list
-        # load modules from subclasses in modules/ directory
-        # use modules dir from modules package
+        # Create component list
+        # load subclasses from modules in components/ directory
+        # use components dir from components package
         # import all the submodules
         # then gather a list of the names
-        self.module_list = []
-        package_dir = Path(modules.__file__).resolve().parent
+        self.component_list = []
+        package_dir = Path(components.__file__).resolve().parent
         for (_, module_name, _) in iter_modules([package_dir]):
-            import_module(f"modules.{module_name}")
-        for each in Module.__subclasses__():
-            self.module_list.append((each.__module__, each.__name__))
+            import_module(f"components.{module_name}")
+        for each in Component.__subclasses__():
+            self.component_list.append((each.__module__, each.__name__))
 
         # Create Session document
         ## Get Sessions collection
@@ -65,7 +65,7 @@ class ReconSession:
             "target": self.target_document.inserted_id,
             "started": dt.now(),
             "finished": None,
-            "modules": self.module_list,
+            "components": self.component_list,
         })
 
         # Return Domains collection
@@ -115,16 +115,16 @@ class ReconSession:
     def get_latest(self):
         return self._sessions.find({}, sort=[("date", DESCENDING)])[0:1]
 
-    def check_module(self, mod):
+    def check_component(self, mod):
         m = import_module(mod[0])
         c = getattr(m, mod[1])
         if not Path(c(self.domain, self.scope).modfile).exists():
-            print(f"Module {mod} failed to load properly.")
+            print(f"Component {mod} failed to load properly.")
             return False
         return True
 
     def run(self):
-        # Run modules in list
+        # Run components in list
 
         # Store asset metadata in document
 

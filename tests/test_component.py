@@ -1,8 +1,8 @@
 import pytest_check as check
 from pathlib import Path
-from modules.getsubdomains import GetSubdomains
+from components.getsubdomains import GetSubdomains
 
-def test_module_runfile_exists():
+def test_component_runfile_exists():
     scope = Path.home() / 'targets' / 'example.com.json'
     with open(scope, 'w+') as fs:
         fs.write('{example.com}')

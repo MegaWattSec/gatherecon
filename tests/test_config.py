@@ -27,9 +27,3 @@ def test_name_change():
     cfg.db_name = "testnamestring"
     check.equal(cfg.db_name, "testnamestring")
     cfg.db_name = name_old
-
-def test_modules():
-    cfg = Config()
-    print("\n\nModules available: ")
-    print(cfg.modules)
-    assert isinstance(cfg.modules, list)
