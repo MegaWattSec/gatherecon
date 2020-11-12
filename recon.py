@@ -10,15 +10,15 @@ from pkgutil import iter_modules
 
 class ReconSession:
     
-    def __init__(self, domain, scope):
-        self.domain = domain
+    def __init__(self, target, scope):
+        self.target = target
         self.scope = scope
         self.date = dt.now()
 
-        # Create directory to save assets for domain
+        # Create directory to save assets for target
         # this should create an appropriate path depending on platform
         self._assets = Path.home() / 'assets'
-        self._session_path = self._assets / self.domain / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
+        self._session_path = self._assets / self.target / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
         self._session_path.mkdir(parents=True, exist_ok=True)
 
         # Load config
@@ -37,7 +37,7 @@ class ReconSession:
             "_schema": 1,
             "path": self.path,
             "scope": self.scope,
-            "target": self.domain,
+            "target": self.target,
             "asn": None,
             "githubs": None,
             "domains": [],
@@ -77,7 +77,7 @@ class ReconSession:
             'scope': self.scope,
             'path': self.path,
             'date': self.date,
-            "name": self.domain,
+            "name": self.target,
             "subdomains": [],
         })
         self._id = insert_result.inserted_id
@@ -118,7 +118,7 @@ class ReconSession:
     def check_component(self, mod):
         m = import_module(mod[0])
         c = getattr(m, mod[1])
-        if not Path(c(self.domain, self.scope).modfile).exists():
+        if not Path(c(self.target, self.scope).modfile).exists():
             print(f"Component {mod} failed to load properly.")
             return False
         return True
