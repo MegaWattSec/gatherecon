@@ -2,17 +2,19 @@ from pathlib import Path
 from ruamel.yaml import YAML
 
 class Config:
-    configfile = Path.cwd() / "configs" / "gatherecon.yaml"
+    configpath = Path.cwd() / "configs"
+    configfile = configpath / "gatherecon.yaml"
     default_host = "localhost"
     default_name = "gatherdatabase"
 
     def __init__(self):
         try:
+            self.configpath.mkdir(exist_ok=True)
             self.yaml = YAML()
             self.cfg = self.yaml.load(self.configfile)
         except FileNotFoundError:
             self._create(self.configfile)
-            #self.cfg = self.yaml.load(self.configfile)
+            self.cfg = self.yaml.load(self.configfile)
 
     @property
     def db_host(self):
