@@ -1,4 +1,3 @@
-import docker
 from datetime import datetime as dt
 from pathlib import Path
 from pymongo import MongoClient, DESCENDING
@@ -129,19 +128,3 @@ class ReconSession:
         # Store asset metadata in document
 
         return True
-
-
-_dclient = docker.from_env()
-try:
-    container = _dclient.containers.get('mongodb')
-except docker.errors.NotFound:
-    container = _dclient.containers.run(
-        "mongo",
-        detach = True,
-        name = "mongodb",
-        ports = {
-            '27017/tcp': 27017,
-            '27018/tcp': 27018,
-            '27019/tcp': 27019
-        }
-    )
