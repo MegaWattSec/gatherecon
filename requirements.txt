@@ -1,3 +1,6 @@
 pytest-check
 pymongo
 ruamel.yaml
+tldextract
+python-Levenshtein
+fuzzywuzzy

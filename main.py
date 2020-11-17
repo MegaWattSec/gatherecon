@@ -1,7 +1,20 @@
 import sys
 import argparse
 import pymongo
+import importlib
+import pkgutil
+import pathlib
+import tldextract
+from fuzzywuzzy import process
+from datetime import datetime as dt
+
 import config
+import recon
+import components
+from component import Component
+
+def validate_db(database):
+    return 0
 
 def main(args=None):
     # Get arguments, either passed in via tests or command line
@@ -10,13 +23,26 @@ def main(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("targets",
                         nargs="+",
+                        default="AllAvailableTargets",
                         help="Enter targets by name. \
                             Entering nothing will use all available targets")
     parser.add_argument("-s", "--search", help="Search for targets, given \
                         a filter.")
     parser.add_argument("-u", "--update", help="Update target definitions.")
     args = parser.parse_args(args)
-    print("Arguments: " + str(args))
+    # print("Arguments: " + str(args))
+
+    # Create component list
+    # load subclasses from modules in components/ directory
+    # use components dir from components package
+    # import all the submodules
+    # then gather a list of the names
+    component_list = []
+    package_dir = pathlib.Path(components.__file__).resolve().parent
+    for (_, module_name, _) in pkgutil.iter_modules([package_dir]):
+        importlib.import_module(f"components.{module_name}")
+    for each in Component.__subclasses__():
+        component_list.append((each.__module__, each.__name__))
 
     # Setup MongoDB Connection
     # Setup MongoClient and get database
@@ -24,15 +50,162 @@ def main(args=None):
     _client = pymongo.MongoClient(_config.db_host)
     _db = _client[_config.db_name]
 
-    # If given targets, iterate over
-    target_list = args.targets
-    for target in target_list:
-        # if the target is blank, process all targets
-        if target == "":
-            target = "AllTargetsAvailable"
+    # Reference Collections
+    _targets = _db["Targets"]
+    _sessions = _db["Sessions"]
+    _domains = _db["Domains"]
+    _scopes = _db["Scopes"]
 
-        # Instantiate the session object
-        print("do something with " + str(target))
+    # process all targets if needed
+    target_list = args.targets
+    if "AllAvailableTargets" in target_list:
+        # query mongo for list of all targets with scope
+        target_list = _scopes.find(
+            filter={
+                'targets.in_scope': {
+                    '$exists': True, 
+                    '$ne': []
+                }
+            },
+            projection={
+                '_id': 0, 
+                'name': 1
+            }
+        ).distinct('name')
+
+    # If given targets, iterate over
+    for target in target_list:
+        # Create directory to save assets for target
+        # this should create an appropriate path depending on platform
+        _target_path = pathlib.Path.home() / 'assets' / target
+        _session_path = _target_path / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
+        _session_path.mkdir(parents=True, exist_ok=True)
+
+        # Query the database for scope, filtering on asset_type of URL
+        scope = list(_scopes.find(
+            filter={
+                'name': target
+            },
+            projection={
+                '_id': 0, 
+                'in_scope': {
+                    '$filter': {
+                        'input': '$targets.in_scope', 
+                        'cond': {
+                            '$eq': [
+                                '$$this.asset_type', 'URL'
+                            ]
+                        }
+                    }
+                }, 
+                'out_of_scope': {
+                    '$filter': {
+                        'input': '$targets.out_of_scope', 
+                        'cond': {
+                            '$eq': [
+                                '$$this.asset_type', 'URL'
+                            ]
+                        }
+                    }
+                }
+            }
+        ))
+
+        # Get Target Document
+        result = _targets.find(
+            filter={
+                "target": target
+            },
+            projection={
+                "_id": 1
+            },
+            sort=[("_time", pymongo.DESCENDING)]
+        ).distinct("_id")
+        # If there is more than one result, keep only latest targets
+        # This cleans up the entire collection
+        if len(result) > 1:
+            _targets.aggregate([
+                {
+                    '$sort': {
+                        '_time': -1
+                    }
+                }, {
+                    '$group': {
+                        '_id': 'target', 
+                        'doc': {
+                            '$first': '$$ROOT'
+                        }
+                    }
+                }, {
+                    '$replaceRoot': {
+                        'newRoot': '$doc'
+                    }
+                }, {
+                    '$out': 'Targets'
+                }
+            ])
+            # Get Target Document
+            result = _targets.find(
+                filter={
+                    "target": target
+                },
+                projection={
+                    "_id": 1
+                },
+                sort=[("_time", pymongo.DESCENDING)]
+            ).distinct("_id")
+        # If there are no results, then create the document
+        # return it in a list object like the other results
+        if len(result) == 0:
+            result = [_targets.insert_one({
+                "_schema": 1,
+                "_time": dt.now(),
+                "path": str(_target_path),
+                "target": target,
+                "scope": scope
+            }).inserted_id]
+
+        # Keep the first (most recent) document
+        target_document = result[0]
+
+        # Create Session document
+        ## Get Sessions collection
+        ## Add a document for this session
+        session_document = _sessions.insert_one({
+            "_schema": 1,
+            "path": str(_session_path),
+            "target": target_document,
+            "started": dt.now(),
+            "finished": None,
+            "components": component_list,
+        })
+
+        # Create domain documents for each domain in scope
+        ## Start by getting a list of domains from scope by
+        ##   extracting the domain and tld
+        domain_list = []
+        for in_scope in scope[0]["in_scope"]:
+            domain = in_scope["asset_identifier"]
+            ext = tldextract.extract(domain)
+            domain_list.append(f"{ext.domain}.{ext.suffix}")
+        
+        # use fuzzy matching to determine if the domain belongs
+        # to the target. We don't want to recon other companies
+        # accidentally
+        domain_list = process.extract(
+                            target,
+                            set(domain_list),
+                            limit=100)
+        
+        ## then create the document with a unique set of domains
+        for domain in domain_list:
+            if domain[1] > 80:      # only if the fuzzy match is high
+                domain_document = _domains.insert_one({
+                    'scope': scope,
+                    'date': dt.now(),
+                    "name": domain[0],
+                    "subdomains": [],
+                })
 
     return 0
 
