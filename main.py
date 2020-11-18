@@ -14,6 +14,58 @@ import components
 from component import Component
 
 def validate_db(database):
+    _targets = database["Targets"]
+    _scopes  = database["Scopes"]
+
+    target_list = _scopes.find(
+        filter={
+            'targets.in_scope': {
+                '$exists': True, 
+                '$ne': []
+            }
+        },
+        projection={
+            '_id': 0, 
+            'name': 1
+        }
+    ).distinct('name')
+
+    for target in target_list:
+        # Remove duplicate targets
+        # Get target Document
+        result = _targets.find(
+            filter={
+                "target": target
+            },
+            projection={
+                "_id": 1
+            },
+            sort=[("_time", pymongo.DESCENDING)]
+        ).distinct("_id")
+        # If there is more than one result, keep only latest targets
+        # This cleans up the entire collection
+        if len(result) > 1:
+            _targets.aggregate([
+                {
+                    '$sort': {
+                        '_time': -1
+                    }
+                }, {
+                    '$group': {
+                        '_id': 'target', 
+                        'doc': {
+                            '$first': '$$ROOT'
+                        }
+                    }
+                }, {
+                    '$replaceRoot': {
+                        'newRoot': '$doc'
+                    }
+                }, {
+                    '$out': 'Targets'
+                }
+            ])
+
     return 0
 
 def main(args=None):
@@ -55,6 +107,10 @@ def main(args=None):
     _sessions = _db["Sessions"]
     _domains = _db["Domains"]
     _scopes = _db["Scopes"]
+
+    # Setup Collection indexes
+    # Targets Collection should be unique to prevent dups
+    _targets.create_index([("target", pymongo.ASCENDING)], unique=True)
 
     # process all targets if needed
     target_list = args.targets
@@ -121,39 +177,6 @@ def main(args=None):
             },
             sort=[("_time", pymongo.DESCENDING)]
         ).distinct("_id")
-        # If there is more than one result, keep only latest targets
-        # This cleans up the entire collection
-        if len(result) > 1:
-            _targets.aggregate([
-                {
-                    '$sort': {
-                        '_time': -1
-                    }
-                }, {
-                    '$group': {
-                        '_id': 'target', 
-                        'doc': {
-                            '$first': '$$ROOT'
-                        }
-                    }
-                }, {
-                    '$replaceRoot': {
-                        'newRoot': '$doc'
-                    }
-                }, {
-                    '$out': 'Targets'
-                }
-            ])
-            # Get Target Document
-            result = _targets.find(
-                filter={
-                    "target": target
-                },
-                projection={
-                    "_id": 1
-                },
-                sort=[("_time", pymongo.DESCENDING)]
-            ).distinct("_id")
         # If there are no results, then create the document
         # return it in a list object like the other results
         if len(result) == 0:
@@ -164,7 +187,6 @@ def main(args=None):
                 "target": target,
                 "scope": scope
             }).inserted_id]
-
         # Keep the first (most recent) document
         target_document = result[0]
 
