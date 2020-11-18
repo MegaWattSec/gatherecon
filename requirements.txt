@@ -1,5 +1,5 @@
 pytest-check
-pymongo
+pymongo==3.11.0
 ruamel.yaml
 tldextract
 python-Levenshtein
