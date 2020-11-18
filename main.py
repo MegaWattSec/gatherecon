@@ -167,6 +167,11 @@ def main(args=None):
             }
         ))
 
+        # If the target isn't in the scope list, fail gracefully
+        if len(scope) == 0:
+            print(f"\nTarget {target} is not valid. Skipping target...\n")
+            continue
+
         # Get Target Document
         result = _targets.find(
             filter={
