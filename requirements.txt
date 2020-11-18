@@ -1,4 +1,6 @@
+pytest
 pytest-check
+pytest-mock
 pymongo==3.11.0
 ruamel.yaml
 tldextract

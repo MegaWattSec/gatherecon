@@ -68,21 +68,22 @@ def validate_db(database):
 
     return 0
 
-def main(args=None):
-    # Get arguments, either passed in via tests or command line
-    if not args:
-        args = sys.argv[1:]
-    parser = argparse.ArgumentParser()
-    parser.add_argument("targets",
-                        nargs="+",
-                        default="AllAvailableTargets",
-                        help="Enter targets by name. \
-                            Entering nothing will use all available targets")
-    parser.add_argument("-s", "--search", help="Search for targets, given \
-                        a filter.")
-    parser.add_argument("-u", "--update", help="Update target definitions.")
-    args = parser.parse_args(args)
-    # print("Arguments: " + str(args))
+def run_session():
+    return 0
+
+def search_scopes(search_term, database):
+    return 0
+
+def update_scopes(database):
+    return 0
+
+def process_targets(target_list, database):
+    
+    # Reference Collections
+    _targets = database["Targets"]
+    _sessions = database["Sessions"]
+    _domains = database["Domains"]
+    _scopes = database["Scopes"]
 
     # Create component list
     # load subclasses from modules in components/ directory
@@ -96,24 +97,6 @@ def main(args=None):
     for each in Component.__subclasses__():
         component_list.append((each.__module__, each.__name__))
 
-    # Setup MongoDB Connection
-    # Setup MongoClient and get database
-    _config = config.Config()
-    _client = pymongo.MongoClient(_config.db_host)
-    _db = _client[_config.db_name]
-
-    # Reference Collections
-    _targets = _db["Targets"]
-    _sessions = _db["Sessions"]
-    _domains = _db["Domains"]
-    _scopes = _db["Scopes"]
-
-    # Setup Collection indexes
-    # Targets Collection should be unique to prevent dups
-    _targets.create_index([("target", pymongo.ASCENDING)], unique=True)
-
-    # process all targets if needed
-    target_list = args.targets
     if "AllAvailableTargets" in target_list:
         # query mongo for list of all targets with scope
         target_list = _scopes.find(
@@ -234,7 +217,50 @@ def main(args=None):
                     "subdomains": [],
                 })
 
+        run_session()
     return 0
+
+def main(args=None):
+    # Get arguments, either passed in via tests or command line
+    if not args:
+        args = sys.argv[1:]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("targets",
+                        nargs="+",
+                        default="AllAvailableTargets",
+                        help="Enter targets by name. \
+                            Entering nothing will use all available targets")
+    parser.add_argument("-s", "--search", help="Search for the provided targets.")
+    parser.add_argument("-u", "--update", help="Update target definitions.")
+    args = parser.parse_args(args)
+    # print("Arguments: " + str(args))
+
+    # Setup MongoDB Connection
+    # Setup MongoClient and get database
+    _config = config.Config()
+    _client = pymongo.MongoClient(_config.db_host)
+    _db = _client[_config.db_name]
+
+    # Reference Collections
+    _targets = _db["Targets"]
+
+    # Setup Collection indexes
+    # Targets Collection should be unique to prevent dups
+    _targets.create_index([("target", pymongo.ASCENDING)], unique=True)
+
+    # Process the arguments in order of this precedence:
+    #   update can be done independently
+    #   if searching, use the target list for search and return
+    #   if not searching, process the target list as a recon session
+    if args.update:
+        update_scopes(_db)
+
+    if args.search:
+        ret_result = search_scopes(args.targets, _db)
+    elif args.targets:
+        ret_result = process_targets(args.targets, _db)
+
+    return ret_result
 
 
 if __name__ == "__main__":
