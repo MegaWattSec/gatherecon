@@ -13,8 +13,15 @@ def test_specific_target(mocker):
 def test_multi_inputs():
     assert main(["Vimeo", "concrete5"]) == 0
 
-# def test_all_targets():
-#     assert main(["AllAvailableTargets"]) == 0
+def test_all_targets():
+    assert main(["AllAvailableTargets"]) == 0
 
 def test_missing_target():
     assert main(["test.com"]) == 0
+
+def test_search_target():
+    assert main(["Monocle", "-s"])[0] == "Big Monocle"
+
+def test_reverse_args():
+    assert main(["-s", "Monocle"])[0] == "Big Monocle"
+

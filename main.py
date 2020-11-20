@@ -71,8 +71,28 @@ def validate_db(database):
 def run_session():
     return 0
 
-def search_scopes(search_term, database):
-    return 0
+def search_scopes(search_terms, database):
+    # TODO: Sanitize input
+
+    result_set = []
+    for term in search_terms:
+        # Query db for input
+        result = database["Scopes"].find(
+                filter={
+                    "name": {
+                        "$regex": f".*{term}.*"
+                    }
+                },
+                projection={
+                    "_id": 0,
+                    "name": 1
+                }
+            ).distinct("name")
+        # Append the found result (should only be one) to a set
+        result_set.append(result[0])
+
+    # Return the set of results
+    return result_set
 
 def update_scopes(database):
     return 0
@@ -156,6 +176,7 @@ def process_targets(target_list, database):
             continue
 
         # Get Target Document
+        # return just the id number with distinct()
         result = _targets.find(
             filter={
                 "target": target
@@ -167,7 +188,7 @@ def process_targets(target_list, database):
         ).distinct("_id")
         # If there are no results, then create the document
         # return it in a list object like the other results
-        if len(result) == 0:
+        if result == []:
             result = [_targets.insert_one({
                 "_schema": 1,
                 "_time": dt.now(),
@@ -230,8 +251,12 @@ def main(args=None):
                         default="AllAvailableTargets",
                         help="Enter targets by name. \
                             Entering nothing will use all available targets")
-    parser.add_argument("-s", "--search", help="Search for the provided targets.")
-    parser.add_argument("-u", "--update", help="Update target definitions.")
+    parser.add_argument("-s", "--search",
+                        action="store_true",
+                        help="Search for the provided targets.")
+    parser.add_argument("-u", "--update",
+                        action="store_true",
+                        help="Update target definitions.")
     args = parser.parse_args(args)
     # print("Arguments: " + str(args))
 
@@ -241,12 +266,10 @@ def main(args=None):
     _client = pymongo.MongoClient(_config.db_host)
     _db = _client[_config.db_name]
 
-    # Reference Collections
-    _targets = _db["Targets"]
-
     # Setup Collection indexes
-    # Targets Collection should be unique to prevent dups
-    _targets.create_index([("target", pymongo.ASCENDING)], unique=True)
+    # Targets and Scopes Collections should be unique to prevent dups
+    _db["Targets"].create_index([("target", pymongo.ASCENDING)], unique=True)
+    _db["Scopes"].create_index([("name", pymongo.ASCENDING)], unique=True)
 
     # Process the arguments in order of this precedence:
     #   update can be done independently
