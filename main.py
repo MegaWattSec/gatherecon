@@ -124,13 +124,13 @@ def update_scopes(database):
             data = json_util.loads(f.read())
             # Use loop for bulk update
             for d in data:
-                print(f"Updating {d['name']}")
+                print(f"Updating {d['handle']}")
                 r = database["Scopes"].update_one(
-                            {"name": d["name"]},
+                            {"handle": d["handle"]},
                             {
                                 "$set": {
                                     "id": d["id"],
-                                    "handle": d["handle"],
+                                    "name": d["name"],
                                     "url": d["url"],
                                     "offers_bounties": d["offers_bounties"],
                                     "quick_to_bounty": d["quick_to_bounty"],
@@ -182,9 +182,9 @@ def process_targets(target_list, database):
             },
             projection={
                 '_id': 0, 
-                'name': 1
+                'handle': 1
             }
-        ).distinct('name')
+        ).distinct('handle')
 
     # If given targets, iterate over
     for target in target_list:
@@ -197,7 +197,7 @@ def process_targets(target_list, database):
         # Query the database for scope, filtering on asset_type of URL
         scope = list(_scopes.find(
             filter={
-                'name': target
+                'handle': target
             },
             projection={
                 '_id': 0, 
@@ -256,6 +256,7 @@ def process_targets(target_list, database):
         # Create Session document
         ## Get Sessions collection
         ## Add a document for this session
+        ## Save link to target document
         session_document = _sessions.insert_one({
             "_schema": 1,
             "path": str(_session_path),
@@ -323,7 +324,7 @@ def main(args=None):
     # Setup Collection indexes
     # Targets and Scopes Collections should be unique to prevent dups
     _db["Targets"].create_index([("target", pymongo.ASCENDING)], unique=True)
-    _db["Scopes"].create_index([("name", pymongo.ASCENDING)], unique=True)
+    _db["Scopes"].create_index([("handle", pymongo.ASCENDING)], unique=True)
 
     # Process the arguments in order of this precedence:
     #   update can be done independently
