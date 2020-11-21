@@ -71,7 +71,8 @@ def validate_db(database):
 
     return 0
 
-def run_session():
+def run_session(target, database, session):
+    
     return 0
 
 def search_scopes(search_terms, database):
@@ -124,7 +125,6 @@ def update_scopes(database):
             data = json_util.loads(f.read())
             # Use loop for bulk update
             for d in data:
-                print(f"Updating {d['handle']}")
                 r = database["Scopes"].update_one(
                             {"handle": d["handle"]},
                             {
@@ -282,18 +282,37 @@ def process_targets(target_list, database):
                             target,
                             set(domain_list),
                             limit=100)
+        # print("Target: " + target)
+        # print("Domains: " + str(domain_list))
+        
+        # Add the list of domains to the Target document
+        _targets.update_one(
+            {"_id": target_document},
+            {
+                "$set": {
+                    "domains": domain_list
+                }
+            }
+        )
         
         ## then create the document with a unique set of domains
+        ## uniqueness is set through an index
         for domain in domain_list:
             if domain[1] > 80:      # only if the fuzzy match is high
-                domain_document = _domains.insert_one({
-                    'scope': scope,
-                    'date': dt.now(),
-                    "name": domain[0],
-                    "subdomains": [],
-                })
+                _domains.update_one(
+                    {"name": domain[0]},
+                    {
+                        "$set": {
+                            "scope": scope,
+                            "date": dt.now(),
+                            "name": domain[0],
+                            "subdomains": [],
+                        }
+                    },
+                    upsert=True
+                )
 
-        run_session()
+        run_session(target, database, session_document)
     return 0
 
 def main(args=None):
@@ -313,7 +332,6 @@ def main(args=None):
                         action="store_true",
                         help="Update target definitions.")
     args = parser.parse_args(args)
-    # print("Arguments: " + str(args))
 
     # Setup MongoDB Connection
     # Setup MongoClient and get database
@@ -325,17 +343,18 @@ def main(args=None):
     # Targets and Scopes Collections should be unique to prevent dups
     _db["Targets"].create_index([("target", pymongo.ASCENDING)], unique=True)
     _db["Scopes"].create_index([("handle", pymongo.ASCENDING)], unique=True)
+    _db["Domains"].create_index([("name", pymongo.ASCENDING)], unique=True)
 
     # Process the arguments in order of this precedence:
     #   update can be done independently
     #   if searching, use the target list for search and return
     #   if not searching, process the target list as a recon session
-    if args.update:
-        update_scopes(_db)
 
-    if args.search:
+    if args.update:
+        ret_result = update_scopes(_db)
+    elif args.search:
         ret_result = search_scopes(args.targets, _db)
-    elif args.targets:
+    else:
         ret_result = process_targets(args.targets, _db)
 
     return ret_result
