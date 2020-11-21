@@ -1,12 +1,15 @@
 import sys
+import subprocess
 import argparse
 import pymongo
 import importlib
 import pkgutil
 import pathlib
 import tldextract
+import git
 from fuzzywuzzy import process
 from datetime import datetime as dt
+from bson import json_util
 
 import config
 import recon
@@ -95,7 +98,58 @@ def search_scopes(search_terms, database):
     return result_set
 
 def update_scopes(database):
-    return 0
+    _config = config.Config()
+    bountytargetsrepo = "https://github.com/arkadiyt/bounty-targets-data.git"
+    bountytargetspath = pathlib.Path(_config.tools_path) / "bounty-targets-data"
+    bountydatafile = bountytargetspath / "data" / "hackerone_data.json"
+
+    # Download scope definitions only from hackerone right now
+    # Use subprocess and check output for errors
+    try:
+        g = git.Repo.clone_from(bountytargetsrepo, bountytargetspath)
+    except git.GitCommandError as e:
+        # If already cloned, do a pull
+        if "code(128)" in str(e):
+            g = git.cmd.Git(bountytargetspath)
+            g.pull()
+
+    # Save into the database
+    # Only using the data file
+    # need to update existing scopes and add any new ones
+    # keep track of the date of update per scope
+    try:
+        result = 0
+        # Open the data file
+        with open(bountydatafile, "r") as f:
+            data = json_util.loads(f.read())
+            # Use loop for bulk update
+            for d in data:
+                print(f"Updating {d['name']}")
+                r = database["Scopes"].update_one(
+                            {"name": d["name"]},
+                            {
+                                "$set": {
+                                    "id": d["id"],
+                                    "handle": d["handle"],
+                                    "url": d["url"],
+                                    "offers_bounties": d["offers_bounties"],
+                                    "quick_to_bounty": d["quick_to_bounty"],
+                                    "quick_to_first_response": d["quick_to_first_response"],
+                                    "submission_state": d["submission_state"],
+                                    "targets": d["targets"]
+                                }
+                            },
+                            upsert=True
+                            )
+                # Save the amount of records modified to return
+                result += r.modified_count
+    
+    # results show how many scopes were updates/added
+    # zero means no scopes were affected
+    # -1 means there was an error
+        return result
+    except:
+        return -1
 
 def process_targets(target_list, database):
     
@@ -247,7 +301,7 @@ def main(args=None):
         args = sys.argv[1:]
     parser = argparse.ArgumentParser()
     parser.add_argument("targets",
-                        nargs="+",
+                        nargs="*",
                         default="AllAvailableTargets",
                         help="Enter targets by name. \
                             Entering nothing will use all available targets")

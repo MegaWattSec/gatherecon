@@ -25,3 +25,8 @@ def test_search_target():
 def test_reverse_args():
     assert main(["-s", "Monocle"])[0] == "Big Monocle"
 
+def test_update_scopes():
+    # results show how many scopes were updates/added
+    # zero means no scopes were affected
+    # -1 means there was an error
+    assert main(["-u"]) >= 0

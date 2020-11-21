@@ -6,3 +6,4 @@ ruamel.yaml
 tldextract
 python-Levenshtein
 fuzzywuzzy
+GitPython
