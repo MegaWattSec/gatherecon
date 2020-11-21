@@ -10,29 +10,33 @@ class Config:
     def __init__(self):
         try:
             self.configpath.mkdir(exist_ok=True)
-            self.yaml = YAML()
-            self.cfg = self.yaml.load(self.configfile)
+            self._yaml = YAML()
+            self._cfg = self._yaml.load(self.configfile)
         except FileNotFoundError:
             self._create(self.configfile)
-            self.cfg = self.yaml.load(self.configfile)
+            self._cfg = self._yaml.load(self.configfile)
 
     @property
     def db_host(self):
-        return self.cfg["database"]["host"]
+        return self._cfg["database"]["host"]
 
     @db_host.setter
     def db_host(self, host):
-        self.cfg["database"]["host"] = host
-        self.yaml.dump(self.cfg, self.configfile)
+        self._cfg["database"]["host"] = host
+        self._yaml.dump(self._cfg, self.configfile)
 
     @property
     def db_name(self):
-        return self.cfg["database"]["name"]
+        return self._cfg["database"]["name"]
 
     @db_name.setter
     def db_name(self, name):
-        self.cfg["database"]["name"] = name
-        self.yaml.dump(self.cfg, self.configfile)
+        self._cfg["database"]["name"] = name
+        self._yaml.dump(self._cfg, self.configfile)
+
+    @property
+    def tools_path(self):
+        return self._cfg["paths"]["tools"]
 
     def _create(self, cfile):
         try:
@@ -42,7 +46,7 @@ class Config:
             _tools_path = _basedir_path / "tools"
 
             # put default properties into the Box object
-            newcfg = { 
+            _new_cfg = { 
                 "paths": {
                     "basedir": str(_basedir_path),
                     "assets": str(_assets_path),
@@ -55,7 +59,7 @@ class Config:
             }
 
             # Write YAML config file
-            self.yaml.dump(newcfg, cfile)
+            self._yaml.dump(_new_cfg, cfile)
 
             return True
         except:
