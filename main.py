@@ -99,8 +99,6 @@ def create_graph():
     order = []
     while ts.is_active():
         node_group = ts.get_ready()
-        # Use yield from if processing graph as an iterable
-        #yield from node_group
 
         # Put each group, which is the dependency level, in a 
         # list that can be processed concurrently.
@@ -116,6 +114,10 @@ def run_session(target, database, session, components):
 def search_scopes(search_terms, database):
     # TODO: Sanitize input
 
+    # use AllAvailableTargets
+    if "AllAvailableTargets" in search_terms:
+        search_terms = [""]
+
     result_set = []
     for term in search_terms:
         # Query db for input
@@ -130,10 +132,13 @@ def search_scopes(search_terms, database):
                     "name": 1
                 }
             ).distinct("name")
-        # Append the found result (should only be one) to a set
-        result_set.append(result[0])
+        # Append the found result to a set
+        for r in result:
+            result_set.append(r)
 
     # Return the set of results
+    print("Results: ")
+    print(result_set)
     return result_set
 
 def update_scopes(database):

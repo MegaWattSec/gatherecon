@@ -20,10 +20,20 @@ def test_missing_target():
     assert main(["test.com"]) == 0
 
 def test_search_target():
+    # should return a list of strings (one in this case)
     assert main(["Monocle", "-s"])[0] == "Big Monocle"
 
-def test_reverse_args():
-    assert main(["-s", "Monocle"])[0] == "Big Monocle"
+def test_search_reverse_args():
+    # should return a list of strings (one in this case)
+    assert main(["-s", "Monocle"]) == ["Big Monocle"]
+
+def test_search_alltargets():
+    # should return a list of all targets (over 400 of them)
+    assert len(main(["AllAvailableTargets", "-s"])) > 400
+
+def test_search_missing():
+    # should return an empty list
+    assert main(["test.com", "-s"]) == []
 
 def test_update_scopes():
     # results show how many scopes were updates/added
