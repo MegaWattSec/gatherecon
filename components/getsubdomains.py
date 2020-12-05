@@ -8,7 +8,7 @@ class GetSubdomains(Component):
         self.modfile = "components/getsubdomains.sh"
         self.options = f"-d {self.target} -s {self.scope}"
         self.input = []
-        self.depends = ""
+        self.parent = ""
         self.tools = ["bass",
                     "subfinder",
                     "github-subdomains",

@@ -1,12 +1,12 @@
 from subprocess import run, CalledProcessError
 
 class Component():
-    target = ""
-    scope = ""
+    name = ""
     modfile = ""
-    options = ""
     input = []
-    depends = ""
+    options = ""
+    assets = ""
+    parent = ""
     tools = []
 
     def __init__(self, target, scope):

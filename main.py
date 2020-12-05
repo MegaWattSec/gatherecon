@@ -7,6 +7,7 @@ import pkgutil
 import pathlib
 import tldextract
 import git
+import graphlib
 from fuzzywuzzy import process
 from datetime import datetime as dt
 from bson import json_util
@@ -71,7 +72,44 @@ def validate_db(database):
 
     return 0
 
-def run_session(target, database, session):
+def create_graph():
+
+    # Create component list
+    # load subclasses from modules in components/ directory
+    # use components dir from components package
+    # import all the submodules
+    # then gather a list of the names
+    component_list = {}
+    package_dir = pathlib.Path(components.__file__).resolve().parent
+    # import all the component modules to get access
+    for (_, module_name, _) in pkgutil.iter_modules([package_dir]):
+        importlib.import_module(f"components.{module_name}")
+    # create a directed acyclic graph of the components
+    for each in Component.__subclasses__():
+        if each.__name__ in component_list:
+            component_list[each.__name__].append(each.parent)
+        else:
+            component_list[each.__name__] = [each.parent]
+
+    # Set up the graph sorter
+    ts = graphlib.TopologicalSorter(component_list)
+    ts.prepare()
+
+    # sort the components and return the order in groups for concurrency
+    order = []
+    while ts.is_active():
+        node_group = ts.get_ready()
+        # Use yield from if processing graph as an iterable
+        #yield from node_group
+
+        # Put each group, which is the dependency level, in a 
+        # list that can be processed concurrently.
+        order.append([node_group])
+
+        ts.done(*node_group)
+    return order
+
+def run_session(target, database, session, components):
     
     return 0
 
@@ -112,7 +150,11 @@ def update_scopes(database):
         # If already cloned, do a pull
         if "code(128)" in str(e):
             g = git.cmd.Git(bountytargetspath)
-            g.pull()
+            try:
+                g.pull()
+            except git.GitCommandError as e:
+                print("Something is wrong with the scope data, could not pull from \
+                    repo. Has the data been changed?")
 
     # Save into the database
     # Only using the data file
@@ -159,17 +201,10 @@ def process_targets(target_list, database):
     _domains = database["Domains"]
     _scopes = database["Scopes"]
 
-    # Create component list
-    # load subclasses from modules in components/ directory
-    # use components dir from components package
-    # import all the submodules
-    # then gather a list of the names
-    component_list = []
-    package_dir = pathlib.Path(components.__file__).resolve().parent
-    for (_, module_name, _) in pkgutil.iter_modules([package_dir]):
-        importlib.import_module(f"components.{module_name}")
-    for each in Component.__subclasses__():
-        component_list.append((each.__module__, each.__name__))
+    # Create module dependency graph
+    # The list should also have a sublist of components that
+    #   can be run concurrently through Axiom
+    component_order = create_graph()
 
     if "AllAvailableTargets" in target_list:
         # query mongo for list of all targets with scope
@@ -263,7 +298,6 @@ def process_targets(target_list, database):
             "target": target_document,
             "started": dt.now(),
             "finished": None,
-            "components": component_list,
         })
 
         # Create domain documents for each domain in scope
@@ -312,7 +346,7 @@ def process_targets(target_list, database):
                     upsert=True
                 )
 
-        run_session(target, database, session_document)
+        run_session(target, database, session_document, component_order)
     return 0
 
 def main(args=None):
@@ -349,7 +383,6 @@ def main(args=None):
     #   update can be done independently
     #   if searching, use the target list for search and return
     #   if not searching, process the target list as a recon session
-
     if args.update:
         ret_result = update_scopes(_db)
     elif args.search:

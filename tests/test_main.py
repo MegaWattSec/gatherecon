@@ -30,3 +30,8 @@ def test_update_scopes():
     # zero means no scopes were affected
     # -1 means there was an error
     assert main(["-u"]) >= 0
+
+def test_dep_graph():
+    # test by getting all component details saved in a session document 
+    # then comparing the start and end times to see what the order was
+    assert True
