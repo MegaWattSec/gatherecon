@@ -314,16 +314,6 @@ def process_targets(target_list, database):
             ext = tldextract.extract(domain)
             domain_list.append(f"{ext.domain}.{ext.suffix}")
         
-        # use fuzzy matching to determine if the domain belongs
-        # to the target. We don't want to recon other companies
-        # accidentally
-        domain_list = process.extract(
-                            target,
-                            set(domain_list),
-                            limit=100)
-        # print("Target: " + target)
-        # print("Domains: " + str(domain_list))
-        
         # Add the list of domains to the Target document
         _targets.update_one(
             {"_id": target_document},
