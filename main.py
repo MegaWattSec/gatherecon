@@ -8,13 +8,13 @@ import pathlib
 import tldextract
 import git
 import graphlib
-from fuzzywuzzy import process
+import digitalocean
 from datetime import datetime as dt
 from bson import json_util
 
 import config
-import recon
 import components
+import axiom
 from component import Component
 
 def validate_db(database):
@@ -73,26 +73,21 @@ def validate_db(database):
     return 0
 
 def create_graph():
-
-    # Create component list
     # load subclasses from modules in components/ directory
     # use components dir from components package
     # import all the submodules
     # then gather a list of the names
-    component_list = {}
     package_dir = pathlib.Path(components.__file__).resolve().parent
     # import all the component modules to get access
     for (_, module_name, _) in pkgutil.iter_modules([package_dir]):
         importlib.import_module(f"components.{module_name}")
-    # create a directed acyclic graph of the components
+    # create a directed acyclic graph of the component names
+    ts = graphlib.TopologicalSorter()
     for each in Component.__subclasses__():
-        if each.__name__ in component_list:
-            component_list[each.__name__].append(each.parent)
+        if each.parent == "":
+            ts.add(each)
         else:
-            component_list[each.__name__] = [each.parent]
-
-    # Set up the graph sorter
-    ts = graphlib.TopologicalSorter(component_list)
+            ts.add(each, each.parent)
     ts.prepare()
 
     # sort the components and return the order in groups for concurrency
@@ -102,8 +97,7 @@ def create_graph():
 
         # Put each group, which is the dependency level, in a 
         # list that can be processed concurrently.
-        order.append([node_group])
-
+        order.append(node_group)
         ts.done(*node_group)
     return order
 
