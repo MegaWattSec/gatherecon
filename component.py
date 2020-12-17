@@ -24,11 +24,11 @@ class Component():
                 check=True,
                 encoding='utf-8'
             )
+            return process.returncode
         except CalledProcessError as e:
             print("Return code: " + e.returncode)
             print("Output: " + e.stdout)
-        finally:
-            return process.returncode
+            return e.returncode
 
     def run(self):
         # Execute the component and return the stdout
@@ -40,8 +40,8 @@ class Component():
                 check=True,
                 encoding='utf-8'
             )
+            return process.stdout
         except CalledProcessError as e:
             print("\n\nRun Command: " + e.cmd)
             print("\n\nOutput: " + e.output)
-        finally:
-            return process.stdout
+            return e.returncode
