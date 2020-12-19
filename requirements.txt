@@ -6,3 +6,4 @@ tldextract==3.1.0
 fuzzywuzzy==0.18.0
 GitPython==3.1.11
 pymongo==3.11.1
+python-digitalocean==1.16.0

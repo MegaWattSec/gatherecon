@@ -1,5 +1,4 @@
 import sys
-import subprocess
 import argparse
 import pymongo
 import importlib
@@ -101,8 +100,42 @@ def create_graph():
         ts.done(*node_group)
     return order
 
-def run_session(target, database, session, components):
+def run_session(target, database, session):
+    # Set up Axiom boxes
+    ax = axiom.Axiom()
+
+    do_api = config.Config().do_api
+    manager = digitalocean.Manager(token=do_api)
+    limit = manager.get_account().droplet_limit
+
+    # Create module dependency graph
+    # The list should also have a sublist of components that
+    #   can be run concurrently through Axiom
+    com_order = create_graph()
+
+    # Loop through heirarchy levels
+    for level in com_order:
+        ## Divide remaining axiom instances between components in heirarchy level
+        ## to get the maximum possible per component
+        droplets = manager.get_all_droplets()
+        max_limit = (limit - len(droplets)) / len(level)
+
+        ## Loop through components on level
+        for com in level:
+            ### Verify the input requirements are met
+            print(com)
+
+            ### Divide up input files if needed
+
+            ### Run the components in the same level under Axiom
+            ### Pass in the maximum axiom instance found earlier
+            ### The component can determine whether to use one or all instances
+
+        ## Print list of results
     
+    # Tear down Axiom boxes
+
+    # Return any errors or 0
     return 0
 
 def search_scopes(search_terms, database):
@@ -199,11 +232,6 @@ def process_targets(target_list, database):
     _sessions = database["Sessions"]
     _domains = database["Domains"]
     _scopes = database["Scopes"]
-
-    # Create module dependency graph
-    # The list should also have a sublist of components that
-    #   can be run concurrently through Axiom
-    component_order = create_graph()
 
     if "AllAvailableTargets" in target_list:
         # query mongo for list of all targets with scope
@@ -335,7 +363,7 @@ def process_targets(target_list, database):
                     upsert=True
                 )
 
-        run_session(target, database, session_document, component_order)
+        run_session(target, database, session_document)
     return 0
 
 def main(args=None):

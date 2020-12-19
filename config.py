@@ -38,6 +38,10 @@ class Config:
     def tools_path(self):
         return self._cfg["paths"]["tools"]
 
+    @property
+    def do_api(self):
+        return self._cfg["digitalocean_api"]
+
     def _create(self, cfile):
         try:
             # define paths with local variables
