@@ -12,7 +12,6 @@ from datetime import datetime as dt
 from bson import json_util
 
 import config
-import components
 import axiom
 from component import Component
 
@@ -71,15 +70,14 @@ def validate_db(database):
 
     return 0
 
-def create_graph():
-    # load subclasses from modules in components/ directory
-    # use components dir from components package
-    # import all the submodules
-    # then gather a list of the names
-    package_dir = pathlib.Path(components.__file__).resolve().parent
+def create_graph(name):
+    # Import the package and get the path
+    package = importlib.import_module(name)
+    package_dir = pathlib.Path(package.__file__).resolve().parent
+
     # import all the component modules to get access
     for (_, module_name, _) in pkgutil.iter_modules([package_dir]):
-        importlib.import_module(f"components.{module_name}")
+        importlib.import_module(f"{name}.{module_name}")
     # create a directed acyclic graph of the component names
     ts = graphlib.TopologicalSorter()
     for each in Component.__subclasses__():
@@ -108,10 +106,8 @@ def run_session(target, database, session):
     manager = digitalocean.Manager(token=do_api)
     limit = manager.get_account().droplet_limit
 
-    # Create module dependency graph
-    # The list should also have a sublist of components that
-    #   can be run concurrently through Axiom
-    com_order = create_graph()
+    # Create module dependency graph from modules in components/ directory
+    com_order = create_graph("components")
 
     # Loop through heirarchy levels
     for level in com_order:
@@ -122,15 +118,15 @@ def run_session(target, database, session):
 
         ## Loop through components on level
         for com in level:
-            ### Verify the input requirements are met
+            ### Verify the input is a file that has no open handles
             print(com)
 
-            ### Divide up input files if needed
-
-            ### Run the components in the same level under Axiom
+            ### Run the component under Axiom
             ### Pass in the maximum axiom instance found earlier
-            ### The component can determine whether to use one or all instances
+            ### Axiom will use to component props to determine whether to use one or all instances
+            ### Pass in the input file(s)
 
+        ## Wait for components to finish
         ## Print list of results
     
     # Tear down Axiom boxes

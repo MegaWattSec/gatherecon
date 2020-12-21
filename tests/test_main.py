@@ -41,7 +41,10 @@ def test_update_scopes():
     # -1 means there was an error
     assert main(["-u"]) >= 0
 
-def test_dep_graph():
-    # test by getting all component details saved in a session document 
-    # then comparing the start and end times to see what the order was
-    assert True
+def test_create_graph():
+    # test by creating a graph from a component test directory
+    levl = create_graph("tests.components")
+    # Check how many component levels are returned
+    pytest_check.check( len(levl) == 1 )
+    # Check how many components in the level
+    pytest_check.check( len(levl[0]) == 2 )
