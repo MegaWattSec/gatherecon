@@ -345,19 +345,18 @@ def process_targets(target_list, database):
         ## then create the document with a unique set of domains
         ## uniqueness is set through an index
         for domain in domain_list:
-            if domain[1] > 80:      # only if the fuzzy match is high
-                _domains.update_one(
-                    {"name": domain[0]},
-                    {
-                        "$set": {
-                            "scope": scope,
-                            "date": dt.now(),
-                            "name": domain[0],
-                            "subdomains": [],
-                        }
-                    },
-                    upsert=True
-                )
+            _domains.update_one(
+                {"name": domain[0]},
+                {
+                    "$set": {
+                        "scope": scope,
+                        "date": dt.now(),
+                        "name": domain[0],
+                        "subdomains": [],
+                    }
+                },
+                upsert=True
+            )
 
         run_session(target, database, session_document)
     return 0
