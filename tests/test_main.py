@@ -31,9 +31,15 @@ def test_all_targets(mocker):
     assert main(["AllAvailableTargets"]) == 0
 
 def test_missing_target():
-    assert main(["test.com"]) == 0
+    # Mock run_session to return a good result
+    mocker.patch(
+        "main.run_session",
+        return_value=0
+    )
 
-def test_search_target():
+    assert main(["thistargetshouldnotexist.com"]) == 0
+
+def test_search():
     # should return a list of strings (one in this case)
     assert main(["Monocle", "-s"])[0] == "Big Monocle"
 
@@ -47,7 +53,7 @@ def test_search_alltargets():
 
 def test_search_missing():
     # should return an empty list
-    assert main(["test.com", "-s"]) == []
+    assert main(["thistargetshouldnotexist.com", "-s"]) == []
 
 def test_update_scopes():
     # results show how many scopes were updates/added
