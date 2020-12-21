@@ -10,7 +10,7 @@ def test_specific_target(mocker):
         "main.run_session",
         return_value=0
     )
-    assert main(["Vimeo"]) == 0
+    assert main(["vimeo"]) == 0
 
 def test_multi_inputs(mocker):
     # Mock run_session to return a good result
@@ -18,7 +18,7 @@ def test_multi_inputs(mocker):
         "main.run_session",
         return_value=0
     )
-    assert main(["Vimeo", "concrete5"]) == 0
+    assert main(["vimeo", "concrete5"]) == 0
 
 def test_all_targets(mocker):
     # Mock run_session to return a good result

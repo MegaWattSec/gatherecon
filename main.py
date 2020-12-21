@@ -152,9 +152,9 @@ def search_scopes(search_terms, database):
                 },
                 projection={
                     "_id": 0,
-                    "name": 1
+                    "handle": 1
                 }
-            ).distinct("name")
+            ).distinct("handle")
         # Append the found result to a set
         for r in result:
             result_set.append(r)
