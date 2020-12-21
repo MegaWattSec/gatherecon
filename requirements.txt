@@ -1,9 +1,8 @@
-pytest==6.1.2
-pytest-check==0.3.9
-pytest-mock==3.3.1
+pytest==6.2.1
+pytest-check==0.4.0
 ruamel.yaml==0.16.12
 tldextract==3.1.0
 fuzzywuzzy==0.18.0
 GitPython==3.1.11
-pymongo==3.11.1
+pymongo==3.11.2
 python-digitalocean==1.16.0
