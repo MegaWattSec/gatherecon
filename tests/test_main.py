@@ -1,7 +1,6 @@
-import pytest
 import pytest_check
 from pytest_mock import mocker
-from main import main
+from main import main, create_graph
 
 def test_specific_target(mocker):
     # mock the 'run' function of main for now
@@ -13,7 +12,14 @@ def test_specific_target(mocker):
 def test_multi_inputs():
     assert main(["Vimeo", "concrete5"]) == 0
 
-def test_all_targets():
+def test_all_targets(mocker):
+    # Mock run_session to return a good result
+    mocker.patch(
+        "main.run_session",
+        return_value=0
+    )
+
+    # Execute against all available targets
     assert main(["AllAvailableTargets"]) == 0
 
 def test_missing_target():
