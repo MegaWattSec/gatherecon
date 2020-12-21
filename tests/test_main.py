@@ -6,10 +6,18 @@ def test_specific_target(mocker):
     # mock the 'run' function of main for now
     # fill out the run functionality later and then mock
     # the slow parts of the Component class
-    mocker.patch('main.run_session', return_value=False)
+    mocker.patch(
+        "main.run_session",
+        return_value=0
+    )
     assert main(["Vimeo"]) == 0
 
-def test_multi_inputs():
+def test_multi_inputs(mocker):
+    # Mock run_session to return a good result
+    mocker.patch(
+        "main.run_session",
+        return_value=0
+    )
     assert main(["Vimeo", "concrete5"]) == 0
 
 def test_all_targets(mocker):
@@ -54,3 +62,7 @@ def test_create_graph():
     pytest_check.check( len(levl) == 1 )
     # Check how many components in the level
     pytest_check.check( len(levl[0]) == 2 )
+
+def test_run_session():
+
+    assert True
