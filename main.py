@@ -144,6 +144,7 @@ def search_scopes(search_terms, database):
     result_set = []
     for term in search_terms:
         # Query db for input
+        # Results should be a dictionary with handle and common name
         result = database["Scopes"].find(
                 filter={
                     "name": {
@@ -152,9 +153,10 @@ def search_scopes(search_terms, database):
                 },
                 projection={
                     "_id": 0,
-                    "handle": 1
+                    "handle": 1,
+                    "name": 1
                 }
-            ).distinct("handle")
+            )
         # Append the found result to a set
         for r in result:
             result_set.append(r)

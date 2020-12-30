@@ -30,7 +30,7 @@ def test_all_targets(mocker):
     # Execute against all available targets
     assert main(["AllAvailableTargets"]) == 0
 
-def test_missing_target():
+def test_missing_target(mocker):
     # Mock run_session to return a good result
     mocker.patch(
         "main.run_session",
@@ -40,12 +40,21 @@ def test_missing_target():
     assert main(["thistargetshouldnotexist.com"]) == 0
 
 def test_search():
-    # should return a list of strings (one in this case)
-    assert main(["Monocle", "-s"])[0] == "Big Monocle"
+    # should return a list of dictionaries (one in this case)
+    res = [ each['name'] for each in main(["Monocle", "-s"]) ]
+    assert "Big Monocle" in res
 
 def test_search_reverse_args():
-    # should return a list of strings (one in this case)
-    assert main(["-s", "Monocle"]) == ["Big Monocle"]
+    # should return a list of dictionaries (one in this case)
+    res = [ each['name'] for each in main(["Monocle", "-s"]) ]
+    assert "Big Monocle" in res
+
+def test_search_multi_targets():
+    # should return a list of dictionaries
+    # Test the length of the return to be greater than 1
+    #assert len(main(["-s", "A"])) > 1
+    res = [ each['name'] for each in main(["A", "-s"]) ]
+    assert "Acronis" and "Adobe" in res
 
 def test_search_alltargets():
     # should return a list of all targets (over 400 of them)
