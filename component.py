@@ -1,11 +1,16 @@
+import json
+from pathlib import Path
 from subprocess import run, CalledProcessError
+from shutil import copyfile
+import config
 
 class Component():
+    _config = config.Config()
+    assets = _config.assets_path
     name = ""
     modfile = ""
     input = []
     options = ""
-    assets = ""
     parent = ""
     tools = []
 
@@ -31,6 +36,20 @@ class Component():
             return e.returncode
 
     def run(self):
+        # Save scope as a file
+        ## Make a correct file path in default folder structure
+        p = Path(self._config.assets_path) / self.target / f"{self.target}.json"
+        with open(p, "w+") as f:
+            ## If dictionary then write to file
+            if type(self.scope) is dict:
+                f.write(json.dumps(self.scope))
+                # fix scope variable to pass the file later
+                self.scope = p
+            ## If a file path is given, then save into correct path
+            ## only if the path is not correct
+            elif self.scope != p:
+                copyfile(self.scope, f)
+
         # Execute the component and return the stdout
         # The components should prefer stdout over stderr
         try:

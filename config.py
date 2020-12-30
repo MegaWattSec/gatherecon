@@ -39,6 +39,10 @@ class Config:
         return self._cfg["paths"]["tools"]
 
     @property
+    def assets_path(self):
+        return self._cfg["paths"]["assets"]
+
+    @property
     def do_api(self):
         return self._cfg["digitalocean_api"]
 
