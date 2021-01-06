@@ -3,6 +3,7 @@ from pathlib import Path
 from components.getsubdomains import GetSubdomains
 
 def test_component_runfile_exists():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
         "target": {
             "scope": {
@@ -28,10 +29,11 @@ def test_component_runfile_exists():
             }
         }
     }
-    mod = GetSubdomains("example.com", scope)
+    mod = GetSubdomains("example.com", scope, resultdir)
     check.is_true( Path(mod.modfile).exists() )
 
 def test_install():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
         "target": {
             "scope": {
@@ -57,11 +59,12 @@ def test_install():
             }
         }
     }
-    mod = GetSubdomains("example.com", scope)
+    mod = GetSubdomains("example.com", scope, resultdir)
     # False here means a good result, any other result is error
     check.is_false(mod.install())
 
 def test_input():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
         "target": {
             "scope": {
@@ -87,11 +90,12 @@ def test_input():
             }
         }
     }
-    mod = GetSubdomains("example.com", scope)
+    mod = GetSubdomains("example.com", scope, resultdir)
     for each in mod.input:
         check.is_true( Path(each).exists() )
 
 def test_run_getsubdomains():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
         "target": {
             "scope": {
@@ -117,5 +121,5 @@ def test_run_getsubdomains():
             }
         }
     }
-    mod = GetSubdomains("example.com", scope)
+    mod = GetSubdomains("example.com", scope, resultdir)
     check.is_not_none(mod.run())

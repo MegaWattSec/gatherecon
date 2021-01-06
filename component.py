@@ -14,9 +14,10 @@ class Component():
     parent = ""
     tools = []
 
-    def __init__(self, target, scope):
+    def __init__(self, target, scope, resultdir):
         self.target = target
         self.scope = scope
+        self.resultdir = resultdir
 
     def install(self):
         # Run component's install and verify function
