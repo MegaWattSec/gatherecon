@@ -94,6 +94,35 @@ def test_input():
     for each in mod.input:
         check.is_true( Path(each).exists() )
 
+def test_install_getsubdomains():
+    scope = {
+        "target": {
+            "scope": {
+                "advanced_mode": 'true',
+                "exclude": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^.*\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ],
+                "include": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^api\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ]
+            }
+        }
+    }
+    mod = GetSubdomains("example.com", scope)
+    check.is_false(mod.install())    # false here is a good result
+
 def test_run_getsubdomains():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
@@ -121,5 +150,5 @@ def test_run_getsubdomains():
             }
         }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
+    mod = GetSubdomains("example.com", scope)
     check.is_not_none(mod.run())
