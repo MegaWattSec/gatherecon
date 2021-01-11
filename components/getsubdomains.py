@@ -47,7 +47,8 @@ class GetSubdomains(Component):
             subprocess.run(
                 "GO111MODULE=on go get github.com/projectdiscovery/subfinder/v2/cmd/subfinder",
                 shell=True,
-                capture_output=True,
+                stdout=subprocess.STDOUT,
+                stderr=subprocess.STDOUT,
                 check=True
             )
 
@@ -55,7 +56,8 @@ class GetSubdomains(Component):
             subprocess.run(
                 "GO111MODULE=on go get github.com/gwen001/github-subdomains",
                 shell=True,
-                capture_output=True,
+                stdout=subprocess.STDOUT,
+                stderr=subprocess.STDOUT,
                 check=True
             )
 
@@ -63,7 +65,8 @@ class GetSubdomains(Component):
             subprocess.run(
                 "GO111MODULE=on go get github.com/OWASP/Amass",
                 shell=True,
-                capture_output=True,
+                stdout=subprocess.STDOUT,
+                stderr=subprocess.STDOUT,
                 check=True
             )
 
@@ -71,7 +74,8 @@ class GetSubdomains(Component):
             subprocess.run(
                 "GO111MODULE=on go get github.com/hakluke/hakrawler",
                 shell=True,
-                capture_output=True,
+                stdout=subprocess.STDOUT,
+                stderr=subprocess.STDOUT,
                 check=True
             )
 
@@ -80,7 +84,8 @@ class GetSubdomains(Component):
             subprocess.run(
                 "GO111MODULE=on go get github.com/projectdiscovery/shuffledns/cmd/shuffledns",
                 shell=True,
-                capture_output=True,
+                stdout=subprocess.STDOUT,
+                stderr=subprocess.STDOUT,
                 check=True
             )
 
@@ -89,7 +94,8 @@ class GetSubdomains(Component):
                 subprocess.run(
                     f"cd {self.tools_dir / 'subscraper'}; git pull",
                     shell=True,
-                    capture_output=True,
+                    stdout=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,
                     check=True
                 )
             else:
@@ -97,13 +103,15 @@ class GetSubdomains(Component):
                     f"git clone https://github.com/Cillian-Collins/subscraper.git \
                         {self.tools_dir / 'subscraper'}",
                     shell=True,
-                    capture_output=True,
+                    stdout=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,
                     check=True
                 )
             subprocess.run(
                 f"pip3 install -r {self.tools_dir / 'subscraper'}/requirements.txt",
                 shell=True,
-                capture_output=True,
+                stdout=subprocess.STDOUT,
+                stderr=subprocess.STDOUT,
                 check=True
             )
 
@@ -112,7 +120,8 @@ class GetSubdomains(Component):
                 subprocess.run(
                     f"cd {self.tools_dir / 'bass'}; git pull",
                     shell=True,
-                    capture_output=True,
+                    stdout=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,
                     check=True
                 )
             else:
@@ -120,13 +129,15 @@ class GetSubdomains(Component):
                     f"git clone https://github.com/Abss0x7tbh/bass.git \
                         {self.tools_dir / 'bass'}",
                     shell=True,
-                    capture_output=True,
+                    stdout=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,
                     check=True
                 )
             subprocess.run(
                 f"pip3 install -r {self.tools_dir / 'bass'}/requirements.txt",
                 shell=True,
-                capture_output=True,
+                stdout=subprocess.STDOUT,
+                stderr=subprocess.STDOUT,
                 check=True
             )
 
@@ -135,7 +146,8 @@ class GetSubdomains(Component):
                 subprocess.run(
                     f"cd {self.tools_dir / 'nscope'}; git pull",
                     shell=True,
-                    capture_output=True,
+                    stdout=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,
                     check=True
                 )
             else:
@@ -143,13 +155,14 @@ class GetSubdomains(Component):
                     f"git clone https://github.com/ponderng/nscope.git \
                         {self.tools_dir / 'nscope'}",
                     shell=True,
-                    capture_output=True,
+                    stdout=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,
                     check=True
                 )
         except subprocess.CalledProcessError as e:
             if e.returncode != 0:
                 print("There was a problem with installing a tool... \r\n")
-                print(e.stderr.decode('utf-8'))
+                print(e.output.decode('utf-8'))
                 return e.returncode
         return 0
 
@@ -185,7 +198,7 @@ class GetSubdomains(Component):
 
     def run(self):
         # Execute the component elements and return the stdout
-        # The components should prefer stdout over stderr
+        # The tools should send everything to stdout
         try:
             self.create_dirs()
             self.check_input()
