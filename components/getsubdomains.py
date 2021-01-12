@@ -21,10 +21,13 @@ class GetSubdomains(Component):
     ]
     tools_dir = pathlib.Path.home() / "tools"
 
-    def __init__(self, target, scope):
+    def __init__(self, target, scope, asset_path):
         self.target = target
         self.scope = scope
+        self.asset_path = asset_path
         self.subdomains_all = []
+
+        self.create_dirs()
 
         # Save scope as a file
         ## Make a correct file path in default folder structure
@@ -167,12 +170,14 @@ class GetSubdomains(Component):
         return 0
 
     def create_dirs(self):
-        # FOLDERNAME=recon-$TODATE
-        # RESULTDIR="$HOME/assets/$DOMAIN/$FOLDERNAME"
-        # SUBS="$RESULTDIR/subdomains"
-        # WORDLIST="$RESULTDIR/wordlists"
-        # IPS="$RESULTDIR/ips"
-        # TOOLS="$HOME/tools"
+        _subs_path = self.asset_path / "subs"
+        _subs_path.mkdir(parents=True, exist_ok=True)
+
+        _wordlist_path = self.asset_path / "wordlist"
+        _wordlist_path.mkdir(parents=True, exist_ok=True)
+
+        _ips_path = self.asset_path / "ips"
+        _ips_path.mkdir(parents=True, exist_ok=True)
         return 0
 
     def check_input(self):

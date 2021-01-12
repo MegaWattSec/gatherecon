@@ -98,7 +98,7 @@ def create_graph(name):
         ts.done(*node_group)
     return order
 
-def run_session(target, database, session):
+def run_session(target, database, session, session_path):
     # Set up Axiom boxes
     ax = axiom.Axiom()
 
@@ -360,7 +360,7 @@ def process_targets(target_list, database):
                 upsert=True
             )
 
-        run_session(target, database, session_document)
+        run_session(target, database, session_document, _session_path)
     return 0
 
 def main(args=None):

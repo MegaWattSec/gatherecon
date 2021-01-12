@@ -95,6 +95,7 @@ def test_input():
         check.is_true( Path(each).exists() )
 
 def test_install_getsubdomains():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
         "target": {
             "scope": {
@@ -120,7 +121,7 @@ def test_install_getsubdomains():
             }
         }
     }
-    mod = GetSubdomains("example.com", scope)
+    mod = GetSubdomains("example.com", scope, resultdir)
     check.is_false(mod.install())    # false here is a good result
 
 def test_run_getsubdomains():
@@ -150,5 +151,5 @@ def test_run_getsubdomains():
             }
         }
     }
-    mod = GetSubdomains("example.com", scope)
+    mod = GetSubdomains("example.com", scope, resultdir)
     check.is_not_none(mod.run())
