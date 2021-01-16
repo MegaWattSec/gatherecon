@@ -43,8 +43,20 @@ class Config:
         return self._cfg["paths"]["assets"]
 
     @property
+    def install_path(self):
+        return self._cfg["paths"]["install"]
+
+    @property
+    def base_path(self):
+        return self._cfg["paths"]["basedir"]
+
+    @property
     def do_api(self):
-        return self._cfg["digitalocean_api"]
+        return self._cfg["tokens"]["digitalocean_api"]
+
+    @property
+    def github_subdomains_token(self):
+        return self._cfg["tokens"]["github_subdomains_token"]
 
     def _create(self, cfile):
         try:
