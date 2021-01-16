@@ -1,36 +1,7 @@
 import pytest_check as check
+from pytest_mock import mocker
 from pathlib import Path
 from components.getsubdomains import GetSubdomains
-
-def test_component_runfile_exists():
-    resultdir = Path.home() / "assets" / "example.com" / "test"
-    scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
-                    {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
-                    },
-                ],
-                "include": [
-                    {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
-                    },
-                ]
-            }
-        }
-    }
-    mod = GetSubdomains("example.com", scope, resultdir)
-    check.is_true( Path(mod.modfile).exists() )
 
 def test_install():
     resultdir = Path.home() / "assets" / "example.com" / "test"
@@ -124,7 +95,7 @@ def test_install_getsubdomains():
     mod = GetSubdomains("example.com", scope, resultdir)
     check.is_false(mod.install())    # false here is a good result
 
-def test_run_getsubdomains():
+def test_getsubdomains_amass():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
         "target": {
@@ -152,4 +123,213 @@ def test_run_getsubdomains():
         }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
-    check.is_not_none(mod.run())
+    result = mod.amass()
+    check.is_false(result)
+
+def test_getsubdomains_bass():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "target": {
+            "scope": {
+                "advanced_mode": 'true',
+                "exclude": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^.*\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ],
+                "include": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^api\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ]
+            }
+        }
+    }
+    mod = GetSubdomains("example.com", scope, resultdir)
+    result = mod.bass()
+    check.is_false(result)
+
+def test_getsubdomains_subfinder():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "target": {
+            "scope": {
+                "advanced_mode": 'true',
+                "exclude": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^.*\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ],
+                "include": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^api\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ]
+            }
+        }
+    }
+    mod = GetSubdomains("example.com", scope, resultdir)
+    result = mod.subfinder()
+    check.is_false(result)
+
+def test_getsubdomains_hakrawler():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "target": {
+            "scope": {
+                "advanced_mode": 'true',
+                "exclude": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^.*\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ],
+                "include": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^api\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ]
+            }
+        }
+    }
+    mod = GetSubdomains("example.com", scope, resultdir)
+    result = mod.hakrawler()
+    check.is_false(result)
+
+def test_getsubdomains_resolve():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "target": {
+            "scope": {
+                "advanced_mode": 'true',
+                "exclude": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^.*\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ],
+                "include": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^api\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ]
+            }
+        }
+    }
+    mod = GetSubdomains("example.com", scope, resultdir)
+    mod.all_subdomains = ["test.example.com", "test2.example.com", "test3.example.com"]
+    result = mod.resolve_all()
+    check.is_false(result)
+
+def test_getsubdomains_subscraper():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "target": {
+            "scope": {
+                "advanced_mode": 'true',
+                "exclude": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^.*\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ],
+                "include": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^api\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ]
+            }
+        }
+    }
+    mod = GetSubdomains("example.com", scope, resultdir)
+    result = mod.subscraper()
+    check.is_false(result)
+
+def test_run_getsubdomains(mocker):
+    # mock the methods that run tools to just test the "run" functionality
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "target": {
+            "scope": {
+                "advanced_mode": 'true',
+                "exclude": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^.*\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ],
+                "include": [
+                    {
+                        "enabled": 'true',
+                        "file": "^/.*",
+                        "host": "^api\\.example\\.com$",
+                        "port": "^80$",
+                        "protocol": "http"
+                    },
+                ]
+            }
+        }
+    }
+    mocker.patch(
+        "components.getsubdomains.GetSubdomains.bass",
+        return_value=0
+    )
+    mocker.patch(
+        "components.getsubdomains.GetSubdomains.subfinder",
+        return_value=0
+    )
+    mocker.patch(
+        "components.getsubdomains.GetSubdomains.amass",
+        return_value=0
+    )
+    mocker.patch(
+        "components.getsubdomains.GetSubdomains.hakrawler",
+        return_value=0
+    )
+    mocker.patch(
+        "components.getsubdomains.GetSubdomains.subscraper",
+        return_value=0
+    )
+    mod = GetSubdomains("example.com", scope, resultdir)
+    result = mod.run()
+    check.is_false(result)
