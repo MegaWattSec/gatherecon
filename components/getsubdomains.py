@@ -48,7 +48,7 @@ class GetSubdomains(Component):
         with open(p, "w+") as f:
             ## If dictionary then write to file
             if type(self.scope) is dict:
-                f.write(json.dumps(self.scope))
+                f.write(f"[{json.dumps(self.scope)}]")
                 # fix scope variable to pass the file later
                 self.scope = p
             ## If a file path is given, then save into correct path
@@ -282,16 +282,31 @@ class GetSubdomains(Component):
             f"{self.base_dir}/go/bin/shuffledns -silent -d {self.target} \
                 -list {self.subs_path}/all_subdomains.txt \
                 -r {self.ips_path}/resolvers.txt \
-                -o {self.subs_path}/all_active_subs.txt",
+                -o {self.subs_path}/active_subs.txt",
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             check=True
         )
+        with open(self.subs_path / "active_subs.txt", 'w+') as output:
+            self.all_subdomains += [line.rstrip('\n') for line in output]
         return r.returncode
 
-    def check_scope(self):
-        return 0
+    def check_scope(self, url, program):
+        # Take a URL as the input
+        # then check against the scope file using nscope
+        print("Checking scope...")
+        print(f"Scope: {self.scope}\nProgram: {program}\nTarget: {url}")
+        r = subprocess.run(
+            f"python3 {self.tools_dir}/nscope/nscope \
+                -d '{self.scope}' \
+                -p '{program}' \
+                -t '{url}'",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
+        )
+        return r.stdout
 
     def run(self):
         # Execute the component elements and return the stdout

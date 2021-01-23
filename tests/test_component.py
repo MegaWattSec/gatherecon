@@ -282,6 +282,49 @@ def test_getsubdomains_subscraper():
     result = mod.subscraper()
     check.is_false(result)
 
+def test_check_scope_negative():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
+                    {
+                        "asset_identifier": "*.example.com"
+                    },
+                ],
+                "in_scope": [
+                    {
+                        "asset_identifier": "api.example.com"
+                    },
+                ]
+            }
+    }
+    mod = GetSubdomains("example.com", scope, resultdir)
+    result = mod.check_scope("mapi.example.com", "example").decode('utf-8')
+    check.is_not_in("mapi.example.com", result)
+
+def test_check_scope_postive():
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    scope = {
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
+                    {
+                        "asset_identifier": "*.example.com"
+                    },
+                ],
+                "in_scope": [
+                    {
+                        "asset_identifier": "api.example.com"
+                    },
+                ]
+            }
+    }
+    mod = GetSubdomains("example.com", scope, resultdir)
+    result = mod.check_scope("api.example.com", "example").decode('utf-8')
+    check.is_not("", result)
+    check.is_in("api.example.com", result)
+
 def test_run_getsubdomains(mocker):
     # mock the methods that run tools to just test the "run" functionality
     resultdir = Path.home() / "assets" / "example.com" / "test"
