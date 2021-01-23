@@ -6,29 +6,19 @@ from components.getsubdomains import GetSubdomains
 def test_install():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     # False here means a good result, any other result is error
@@ -37,29 +27,19 @@ def test_install():
 def test_input():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     for each in mod.input:
@@ -68,59 +48,40 @@ def test_input():
 def test_install_getsubdomains():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     check.is_false(mod.install())    # false here is a good result
 
 def test_getsubdomains_amass():
+    # This test takes a looong time to run
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     result = mod.amass()
@@ -129,29 +90,19 @@ def test_getsubdomains_amass():
 def test_getsubdomains_bass():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     result = mod.bass()
@@ -160,29 +111,19 @@ def test_getsubdomains_bass():
 def test_getsubdomains_subfinder():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     result = mod.subfinder()
@@ -191,29 +132,19 @@ def test_getsubdomains_subfinder():
 def test_getsubdomains_hakrawler():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     result = mod.hakrawler()
@@ -222,29 +153,19 @@ def test_getsubdomains_hakrawler():
 def test_getsubdomains_resolve():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     mod.all_subdomains = ["test.example.com", "test2.example.com", "test3.example.com"]
@@ -254,29 +175,19 @@ def test_getsubdomains_resolve():
 def test_getsubdomains_subscraper():
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mod = GetSubdomains("example.com", scope, resultdir)
     result = mod.subscraper()
@@ -329,29 +240,19 @@ def test_run_getsubdomains(mocker):
     # mock the methods that run tools to just test the "run" functionality
     resultdir = Path.home() / "assets" / "example.com" / "test"
     scope = {
-        "target": {
-            "scope": {
-                "advanced_mode": 'true',
-                "exclude": [
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^.*\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "*.example.com"
                     },
                 ],
-                "include": [
+                "in_scope": [
                     {
-                        "enabled": 'true',
-                        "file": "^/.*",
-                        "host": "^api\\.example\\.com$",
-                        "port": "^80$",
-                        "protocol": "http"
+                        "asset_identifier": "api.example.com"
                     },
                 ]
             }
-        }
     }
     mocker.patch(
         "components.getsubdomains.GetSubdomains.bass",
