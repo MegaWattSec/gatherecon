@@ -205,8 +205,6 @@ def update_scopes(database):
                                     "name": d["name"],
                                     "url": d["url"],
                                     "offers_bounties": d["offers_bounties"],
-                                    "quick_to_bounty": d["quick_to_bounty"],
-                                    "quick_to_first_response": d["quick_to_first_response"],
                                     "submission_state": d["submission_state"],
                                     "targets": d["targets"]
                                 }
@@ -220,7 +218,8 @@ def update_scopes(database):
     # zero means no scopes were affected
     # -1 means there was an error
         return result
-    except:
+    except Exception as e:
+        print(e)
         return -1
 
 def process_targets(target_list, database):
