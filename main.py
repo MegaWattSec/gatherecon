@@ -288,6 +288,11 @@ def process_targets(target_list, database):
             print(f"\nTarget {target} is not valid. Skipping target...\n")
             continue
 
+        # Save scope as a file
+        p = _session_path / "scope.json"
+        with open(p, "w+") as f:
+            f.write(f"[{json.dumps(scope)}]")
+
         # Get Target Document
         # return just the id number with distinct()
         result = _targets.find(

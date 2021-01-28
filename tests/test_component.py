@@ -1,3 +1,4 @@
+import json
 import pytest_check as check
 from pytest_mock import mocker
 from pathlib import Path
@@ -20,7 +21,14 @@ def test_install():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
     # False here means a good result, any other result is error
     check.is_false(mod.install())
 
@@ -41,7 +49,14 @@ def test_input():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
     for each in mod.input:
         check.is_true( Path(each).exists() )
 
@@ -62,7 +77,14 @@ def test_install_getsubdomains():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
     check.is_false(mod.install())    # false here is a good result
 
 def test_getsubdomains_amass():
@@ -83,8 +105,15 @@ def test_getsubdomains_amass():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
-    result = mod.amass()
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
+    result = mod.amass("example.com")
     check.is_false(result)
 
 def test_getsubdomains_bass():
@@ -104,8 +133,15 @@ def test_getsubdomains_bass():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
-    result = mod.bass()
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
+    result = mod.bass("example.com")
     check.is_false(result)
 
 def test_getsubdomains_subfinder():
@@ -125,8 +161,15 @@ def test_getsubdomains_subfinder():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
-    result = mod.subfinder()
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
+    result = mod.subfinder("example.com")
     check.is_false(result)
 
 def test_getsubdomains_hakrawler():
@@ -146,8 +189,15 @@ def test_getsubdomains_hakrawler():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
-    result = mod.hakrawler()
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
+    result = mod.hakrawler("example.com")
     check.is_false(result)
 
 def test_getsubdomains_resolve():
@@ -167,7 +217,14 @@ def test_getsubdomains_resolve():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
     mod.all_subdomains = ["test.example.com", "test2.example.com", "test3.example.com"]
     result = mod.resolve_all()
     check.is_false(result)
@@ -189,8 +246,15 @@ def test_getsubdomains_subscraper():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
-    result = mod.subscraper()
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
+    result = mod.subscraper("example.com")
     check.is_false(result)
 
 def test_check_scope_negative():
@@ -210,7 +274,14 @@ def test_check_scope_negative():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
     result = mod.check_scope("mapi.example.com", "example").decode('utf-8')
     check.is_not_in("mapi.example.com", result)
 
@@ -231,7 +302,14 @@ def test_check_scope_postive():
                 ]
             }
     }
-    mod = GetSubdomains("example.com", scope, resultdir)
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
     result = mod.check_scope("api.example.com", "example").decode('utf-8')
     check.is_not("", result)
     check.is_in("api.example.com", result)
@@ -254,6 +332,14 @@ def test_run_getsubdomains(mocker):
                 ]
             }
     }
+    # Save scope as a file
+    scopef = resultdir / f"scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    mod = GetSubdomains(scopef, "example", resultdir)
+    # Save primary domains list
+    with open(mod.input[0], "w+") as f:
+        f.write("example.com")
     mocker.patch(
         "components.getsubdomains.GetSubdomains.bass",
         return_value=0
@@ -274,6 +360,5 @@ def test_run_getsubdomains(mocker):
         "components.getsubdomains.GetSubdomains.subscraper",
         return_value=0
     )
-    mod = GetSubdomains("example.com", scope, resultdir)
     result = mod.run()
     check.is_false(result)

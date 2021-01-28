@@ -8,7 +8,7 @@ from config import Config
 class GetSubdomains(Component):
     name = "getsubdomains"
     parent = ""
-    input = []
+    input = ["primary_domains.txt"]  # input needs to be file with domains to run
     tools = [
         "bass",
         "subfinder",
@@ -20,11 +20,12 @@ class GetSubdomains(Component):
         "nscope",
     ]
 
-    def __init__(self, target, scope, asset_path):
-        self.target = target
+    def __init__(self, scope, target, session_path):
         self.scope = scope
-        self.asset_path = pathlib.Path(asset_path)
+        self.target = target
+        self.session_path = pathlib.Path(session_path)
         self.all_subdomains = []
+        self.output = self.session_path / "active_subs.txt"
 
         # Open config and get/create paths
         self.cfg = Config()
@@ -32,29 +33,14 @@ class GetSubdomains(Component):
         self.base_dir = pathlib.Path(self.cfg.base_path)
         self.install_dir = pathlib.Path(self.cfg.install_path)
 
-        self.subs_path = self.asset_path / "subs"
+        self.subs_path = self.session_path / "subs"
         self.subs_path.mkdir(parents=True, exist_ok=True)
 
-        self.wordlist_path = self.asset_path / "wordlist"
+        self.wordlist_path = self.session_path / "wordlist"
         self.wordlist_path.mkdir(parents=True, exist_ok=True)
 
-        self.ips_path = self.asset_path / "ips"
+        self.ips_path = self.session_path / "ips"
         self.ips_path.mkdir(parents=True, exist_ok=True)
-
-        # Save scope as a file
-        ## Make a correct file path in default folder structure
-        (pathlib.Path(self._config.assets_path) / self.target).mkdir(parents=True, exist_ok=True)
-        p = pathlib.Path(self._config.assets_path) / self.target / f"{self.target}.json"
-        with open(p, "w+") as f:
-            ## If dictionary then write to file
-            if type(self.scope) is dict:
-                f.write(f"[{json.dumps(self.scope)}]")
-                # fix scope variable to pass the file later
-                self.scope = p
-            ## If a file path is given, then save into correct path
-            ## only if the path is not correct
-            elif self.scope != p:
-                shutil.copyfile(self.scope, f)
 
     def install(self):
         try:
@@ -181,13 +167,17 @@ class GetSubdomains(Component):
                 return e.returncode
         return 0
 
-    def check_input(self):
-        return 0
+    def get_input(self):
+        self.input_domains = []
+        with open(self.session_path / self.input[0], "w+") as f:
+            for line in f:
+                self.input_domains += line.strip()
+        return self.input_domains
 
-    def bass(self):
+    def bass(self, domain):
         r = subprocess.run(
             f"python3 {self.tools_dir}/bass/bass.py \
-                -d '{self.target}' \
+                -d '{domain}' \
                 -o {self.ips_path}/resolvers.txt",
             shell=True,
             stdout=subprocess.PIPE,
@@ -196,9 +186,9 @@ class GetSubdomains(Component):
         )
         return r.returncode
 
-    def subfinder(self):
+    def subfinder(self, domain):
         r = subprocess.run(
-            f"{self.base_dir}/go/bin/subfinder -d '{self.target}' \
+            f"{self.base_dir}/go/bin/subfinder -d '{domain}' \
                 -config {self.base_dir}/gatherecon/configs/subfinder.yaml \
                 -o {self.subs_path}/subfinder.txt",
             shell=True,
@@ -206,14 +196,14 @@ class GetSubdomains(Component):
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "subfinder.txt", 'w+') as output:
-            self.all_subdomains += [line.rstrip('\n') for line in output]
+        with open(self.subs_path / "subfinder.txt", 'w+') as out_file:
+            self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
-    def amass(self):
+    def amass(self, domain):
         # "$HOME"/go/bin/amass enum -passive -dir "$SUBS"/amass -d "$DOMAIN" -config "$HOME"/gatherecon/configs/amass.ini -oA "$SUBS"/amass_scan
         r = subprocess.run(
-            f"{self.base_dir}/go/bin/amass enum -d '{self.target}' \
+            f"{self.base_dir}/go/bin/amass enum -d '{domain}' \
                 -passive \
                 -config {self.base_dir}/gatherecon/configs/amass.ini \
                 -dir {self.subs_path}/amass \
@@ -223,14 +213,14 @@ class GetSubdomains(Component):
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "amass_scan.txt", 'w+') as output:
-            self.all_subdomains += [line.rstrip('\n') for line in output]
+        with open(self.subs_path / "amass_scan.txt", 'w+') as out_file:
+            self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
-    def hakrawler(self):
+    def hakrawler(self, domain):
         #hakrawler -js -linkfinder -subs -depth 2 -scope subs -url "$DOMAIN" -outdir "$SUBS"/hakrawler
         r = subprocess.run(
-            f"{self.base_dir}/go/bin/hakrawler -url {self.target} \
+            f"{self.base_dir}/go/bin/hakrawler -url {domain} \
                 -js -linkfinder -subs -depth 2 -scope subs \
                 -outdir {self.subs_path}/hakrawler",
             shell=True,
@@ -251,22 +241,22 @@ class GetSubdomains(Component):
                     fields = line.strip().split()
                     # save the second field into the results file
                     r.write(fields[2])
-        with open(self.subs_path / "hakrawler.txt", 'w+') as output:
-            self.all_subdomains += [line.rstrip('\n') for line in output]
+        with open(self.subs_path / "hakrawler.txt", 'w+') as out_file:
+            self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
-    def subscraper(self):
+    def subscraper(self, domain):
         # "$TOOLS"/subscraper/subscraper.py -u "$DOMAIN" -o "$SUBS"/subscraper.txt
         r = subprocess.run(
-            f"python3 {self.tools_dir}/subscraper/subscraper.py -u {self.target} \
+            f"python3 {self.tools_dir}/subscraper/subscraper.py -u {domain} \
                 -o {self.subs_path}/subscraper.txt",
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "subscraper.txt", 'w+') as output:
-            self.all_subdomains += [line.rstrip('\n') for line in output]
+        with open(self.subs_path / "subscraper.txt", 'w+') as out_file:
+            self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
     def resolve_all(self):
@@ -279,7 +269,7 @@ class GetSubdomains(Component):
                 f.write(item + "\n")
 
         r = subprocess.run(
-            f"{self.base_dir}/go/bin/shuffledns -silent -d {self.target} \
+            f"{self.base_dir}/go/bin/shuffledns -silent \
                 -list {self.subs_path}/all_subdomains.txt \
                 -r {self.ips_path}/resolvers.txt \
                 -o {self.subs_path}/active_subs.txt",
@@ -288,15 +278,15 @@ class GetSubdomains(Component):
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "active_subs.txt", 'w+') as output:
-            self.all_subdomains += [line.rstrip('\n') for line in output]
+        with open(self.subs_path / "active_subs.txt", 'w+') as out_file:
+            self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
     def check_scope(self, url, program):
         # Take a URL as the input
         # then check against the scope file using nscope
         print("Checking scope...")
-        print(f"Scope: {self.scope}\nProgram: {program}\nTarget: {url}")
+        print(f"Scope: {self.scope}\nTarget: {program}\nDomain: {url}")
         r = subprocess.run(
             f"python3 {self.tools_dir}/nscope/nscope \
                 -d '{self.scope}' \
@@ -312,14 +302,18 @@ class GetSubdomains(Component):
         # Execute the component elements and return the stdout
         # The tools should send everything to stdout
         try:
-            self.check_input()
-            self.bass()
-            self.subfinder()
-            self.amass()
-            self.hakrawler()
-            self.subscraper()
-            self.resolve_all()
-            return self.all_subdomains
+            domains = self.get_input()
+            for domain in domains:
+                self.check_scope(self.scope, domain, self.target)
+                self.bass(domain)
+                self.subfinder(domain)
+                self.amass(domain)
+                self.hakrawler(domain)
+                self.subscraper(domain)
+            result = self.resolve_all()
+            # Copy output from resolve_all into session folder as final output
+            shutil.copy(self.subs_path / "active_subs.txt", self.session_path / self.output)
+            return result
         except subprocess.CalledProcessError as e:
             print("\n\nRun Command: " + e.cmd)
             print("\n\nOutput: " + e.output)
