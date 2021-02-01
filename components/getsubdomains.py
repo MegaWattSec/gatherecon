@@ -1,7 +1,7 @@
 import subprocess
 import pathlib
-import json
 import shutil
+from axiom import Axiom
 from component import Component
 from config import Config
 
@@ -19,26 +19,28 @@ class GetSubdomains(Component):
         "shuffledns",
         "nscope",
     ]
+    axiom_name = "gatherecon-getsubs"
+    axiom_limit = None       # Maximum axiom instances that make sense for this component
 
-    def __init__(self, scope, target, session_path):
-        self.scope = scope
-        self.target = target
-        self.session_path = pathlib.Path(session_path)
-        self.all_subdomains = []
-        self.output = self.session_path / "active_subs.txt"
+    def __init__(self, target, scope, session_path):
+        self.scope = scope      # Scope file
+        self.target = target    # Handle string in bounty-targets-data for the target company
+        self.session_path = pathlib.Path(session_path)      # Path to session folder
+        self.all_subdomains = []        # Results from all submodules
+        self.output = self.session_path / "active_subs.txt"     # Final output file
+
+        # Setup axiom
+        self.axiom = Axiom()
 
         # Open config and get/create paths
         self.cfg = Config()
         self.tools_dir = pathlib.Path(self.cfg.tools_path)
         self.base_dir = pathlib.Path(self.cfg.base_path)
         self.install_dir = pathlib.Path(self.cfg.install_path)
-
         self.subs_path = self.session_path / "subs"
         self.subs_path.mkdir(parents=True, exist_ok=True)
-
         self.wordlist_path = self.session_path / "wordlist"
         self.wordlist_path.mkdir(parents=True, exist_ok=True)
-
         self.ips_path = self.session_path / "ips"
         self.ips_path.mkdir(parents=True, exist_ok=True)
 
@@ -175,16 +177,24 @@ class GetSubdomains(Component):
         return self.input_domains
 
     def bass(self, domain):
-        r = subprocess.run(
-            f"python3 {self.tools_dir}/bass/bass.py \
-                -d '{domain}' \
-                -o {self.ips_path}/resolvers.txt",
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            check=True
-        )
-        return r.returncode
+        # If there are avialable axiom instances, use one
+        if self.axiom.axiom_count > 0:
+            r = self.axiom.exec(f"python3 {self.tools_dir}/bass/bass.py \
+                    -d '{domain}' \
+                    -o {self.ips_path}/resolvers.txt")
+            # Decrement the available axiom instance count
+            self.axiom.axiom_count -= 1
+        else:
+            r = subprocess.run(
+                f"python3 {self.tools_dir}/bass/bass.py \
+                    -d '{domain}' \
+                    -o {self.ips_path}/resolvers.txt",
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=True
+                ).returncode
+        return r
 
     def subfinder(self, domain):
         r = subprocess.run(
@@ -299,8 +309,7 @@ class GetSubdomains(Component):
         return r.stdout
 
     def run(self):
-        # Execute the component elements and return the stdout
-        # The tools should send everything to stdout
+        # Execute the component elements
         try:
             domains = self.get_input()
             for domain in domains:

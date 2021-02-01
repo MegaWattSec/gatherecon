@@ -7,12 +7,12 @@ import pathlib
 import tldextract
 import git
 import graphlib
-import digitalocean
+import json
 from datetime import datetime as dt
 from bson import json_util
 
 import config
-import axiom
+from axiom import Axiom
 from component import Component
 
 def validate_db(database):
@@ -98,38 +98,35 @@ def create_graph(name):
         ts.done(*node_group)
     return order
 
-def run_session(target, database, session, session_path):
-    # Set up Axiom boxes
-    ax = axiom.Axiom()
-
-    do_api = config.Config().do_api
-    manager = digitalocean.Manager(token=do_api)
-    limit = manager.get_account().droplet_limit
+def run_session(target, scope, database, session, session_path):
+    # Setup axiom
+    axiom = Axiom()
 
     # Create module dependency graph from modules in components/ directory
     com_order = create_graph("components")
 
     # Loop through heirarchy levels
+    # Sibling components are executed in parallel
     for level in com_order:
         ## Divide remaining axiom instances between components in heirarchy level
-        ## to get the maximum possible per component
-        droplets = manager.get_all_droplets()
-        max_limit = (limit - len(droplets)) / len(level)
+        ## to get the instance per component
+        droplets = axiom.get_all_instances()
+        droplets_needed = (axiom.limit - len(droplets)) / len(level)
 
         ## Loop through components on level
-        for com in level:
-            ### Verify the input is a file that has no open handles
-            print(com)
+        for c in level:
+            ### Initialize the component
+            com = c(target, scope, session_path)
 
-            ### Run the component under Axiom
-            ### Pass in the maximum axiom instance found earlier
-            ### Axiom will use to component props to determine whether to use one or all instances
-            ### Pass in the input file(s)
-
-        ## Wait for components to finish
-        ## Print list of results
-    
-    # Tear down Axiom boxes
+            ### Initialize an axiom fleet
+            axiom.name = com.axiom_name
+            ### Pass in the axiom instance count or the component's maximum
+            if com.axiom_limit >= droplets_needed:
+                axiom.fleet(droplets_needed)
+            else:
+                axiom.fleet(com.axiom_limit)
+                
+            com.run()
 
     # Return any errors or 0
     return 0
@@ -289,8 +286,8 @@ def process_targets(target_list, database):
             continue
 
         # Save scope as a file
-        p = _session_path / "scope.json"
-        with open(p, "w+") as f:
+        scope_file = _session_path / "scope.json"
+        with open(scope_file, "w+") as f:
             f.write(f"[{json.dumps(scope)}]")
 
         # Get Target Document
@@ -364,7 +361,7 @@ def process_targets(target_list, database):
                 upsert=True
             )
 
-        run_session(target, database, session_document, _session_path)
+        run_session(target, scope_file, database, session_document, _session_path)
     return 0
 
 def main(args=None):
