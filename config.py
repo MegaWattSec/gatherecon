@@ -61,6 +61,7 @@ class Config:
     def _create(self, cfile):
         try:
             # define paths with local variables
+            _install_path = Path.cwd()
             _basedir_path = Path.home()
             _assets_path = _basedir_path / "assets"
             _tools_path = _basedir_path / "tools"
@@ -71,6 +72,7 @@ class Config:
                     "basedir": str(_basedir_path),
                     "assets": str(_assets_path),
                     "tools": str(_tools_path),
+                    "install": str(_install_path)
                 },
                 "database": {
                     "host": self.default_host, 

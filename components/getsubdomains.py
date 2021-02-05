@@ -46,6 +46,20 @@ class GetSubdomains(Component):
 
     def install(self):
         try:
+            # MassDNS prerequisite
+            if not (self.tools_dir / 'massdns').exists():
+                subprocess.run(
+                    f"git clone https://github.com/blechschmidt/massdns.git \
+                            {self.tools_dir / 'massdns'} && \
+                        cd {self.tools_dir / 'massdns'} && \
+                        make && \
+                        make install",
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True
+                )
+
             # "https://github.com/projectdiscovery/subfinder"
             subprocess.run(
                 "GO111MODULE=on go get github.com/projectdiscovery/subfinder/v2/cmd/subfinder",
@@ -66,7 +80,7 @@ class GetSubdomains(Component):
 
             # "https://github.com/OWASP/Amass"
             subprocess.run(
-                "GO111MODULE=on go get github.com/OWASP/Amass",
+                "GO111MODULE=on go get -v github.com/OWASP/Amass/v3/...",
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -92,7 +106,7 @@ class GetSubdomains(Component):
                 check=True
             )
 
-            # "https://github.com/m8r0wn/subscraper"
+            # "https://github.com/Cillian-Collins/subscraper"
             if (self.tools_dir / 'subscraper').exists():
                 subprocess.run(
                     f"cd {self.tools_dir / 'subscraper'}; git pull",
@@ -111,7 +125,7 @@ class GetSubdomains(Component):
                     check=True
                 )
             subprocess.run(
-                f"pip3 install -r {self.tools_dir / 'subscraper'}/requirements.txt",
+                f"pip install -r {self.tools_dir / 'subscraper' / 'requirements.txt'}",
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -143,6 +157,25 @@ class GetSubdomains(Component):
                 stderr=subprocess.STDOUT,
                 check=True
             )
+
+            # Seclists
+            if (self.tools_dir / 'SecLists').exists():
+                subprocess.run(
+                    f"cd {self.tools_dir / 'SecLists'}; git pull",
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True
+                )
+            else:
+                subprocess.run(
+                    f"git clone https://github.com/danielmiessler/SecLists.git \
+                        {self.tools_dir / 'SecLists'}",
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True
+                )
 
             # "https://github.com/ponderng/nscope"
             if (self.tools_dir / 'nscope').exists():
@@ -215,7 +248,6 @@ class GetSubdomains(Component):
         r = subprocess.run(
             f"{self.base_dir}/go/bin/amass enum -d '{domain}' \
                 -passive \
-                -config {self.base_dir}/gatherecon/configs/amass.ini \
                 -dir {self.subs_path}/amass \
                 -oA {self.subs_path}/amass_scan",
             shell=True,
@@ -313,7 +345,7 @@ class GetSubdomains(Component):
         try:
             domains = self.get_input()
             for domain in domains:
-                self.check_scope(self.scope, domain, self.target)
+                self.check_scope(domain, self.target)
                 self.bass(domain)
                 self.subfinder(domain)
                 self.amass(domain)
@@ -325,5 +357,5 @@ class GetSubdomains(Component):
             return result
         except subprocess.CalledProcessError as e:
             print("\n\nRun Command: " + e.cmd)
-            print("\n\nOutput: " + e.output)
+            print("\n\nOutput: " + e.output.decode("utf-8"))
             return e.returncode
