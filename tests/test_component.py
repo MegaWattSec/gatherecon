@@ -59,7 +59,7 @@ def test_input():
     with open(resultdir / mod.input[0], "w+") as f:
         f.write("example.com")
     for each in mod.input:
-        check.is_true( Path(each).exists() )
+        check.is_true( Path(mod.session_path / each).exists() )
 
 def test_getsubdomains_amass():
     # This test takes a looong time to run
