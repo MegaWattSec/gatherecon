@@ -51,6 +51,18 @@ class Config:
         return self._cfg["paths"]["basedir"]
 
     @property
+    def remote_base_path(self):
+        return self._cfg["remote_paths"]["basedir"]
+
+    @property
+    def remote_tools_path(self):
+        return self._cfg["remote_paths"]["tools"]
+        
+    @property
+    def remote_assets_path(self):
+        return self._cfg["remote_paths"]["assets"]
+
+    @property
     def do_api(self):
         return self._cfg["tokens"]["digitalocean_api"]
 

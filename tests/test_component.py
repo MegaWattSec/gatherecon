@@ -267,7 +267,8 @@ def test_check_scope_negative():
     check.is_not_in("mapi.example.com", result)
 
 def test_check_scope_postive():
-    resultdir = Path.home() / "assets" / "example.com" / "test"
+    _session_path = "assets/example.com/test"
+    resultdir = Path.home() / _session_path
     resultdir.mkdir(parents=True, exist_ok=True)
     scope = {
         "handle": "example",
@@ -288,13 +289,20 @@ def test_check_scope_postive():
     scopef = resultdir / f"scope.json"
     with open(scopef, "w+") as f:
         f.write(f"[{json.dumps(scope)}]")
-    mod = GetSubdomains("example", scopef, resultdir)
+    mod = GetSubdomains("example", scopef, _session_path)
     # Save primary domains list
     with open(resultdir / mod.input[0], "w+") as f:
         f.write("example.com")
-    result = mod.check_scope("api.example.com", "example").decode('utf-8')
-    check.is_not("", result)
-    check.is_in("api.example.com", result)
+    # Check for existing instances or create a small fleet
+    mod.axiom.select(mod.axiom_name)
+    if len(mod.axiom.instances) == 0:
+        mod.axiom.fleet(1)
+    # Run the tool
+    results = mod.exec_tool(mod.check_scope, 1, "api.example.com", "example")
+    # Check the results
+    check.is_not([], results)
+    for r in results:
+        check.is_in("api.example.com", r)
 
 def test_run_getsubdomains(mocker):
     # mock the methods that run tools to just test the "run" functionality

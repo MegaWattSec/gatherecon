@@ -98,8 +98,8 @@ def create_graph(name):
         ts.done(*node_group)
     return order
 
-def run_session(target, scope, database, session, session_path):
-    # Setup axiom
+def run_session(target, scope, database, session, _session_path):
+    # Use axiom for concurrency
     axiom = Axiom()
 
     # Create module dependency graph from modules in components/ directory
@@ -116,17 +116,13 @@ def run_session(target, scope, database, session, session_path):
         ## Loop through components on level
         for c in level:
             ### Initialize the component
-            com = c(target, scope, session_path)
+            com = c(target, scope, _session_path)
 
-            ### Initialize an axiom fleet
-            axiom.name = com.axiom_name
             ### Pass in the axiom instance count or the component's maximum
             if com.axiom_limit >= droplets_needed:
-                axiom.fleet(droplets_needed)
+                com.run(droplets_needed)
             else:
-                axiom.fleet(com.axiom_limit)
-                
-            com.run()
+                com.run(com.axiom_limit)
 
     # Return any errors or 0
     return 0
@@ -246,9 +242,10 @@ def process_targets(target_list, database):
     for target in target_list:
         # Create directory to save assets for target
         # this should create an appropriate path depending on platform
-        _target_path = pathlib.Path.home() / 'assets' / target
-        _session_path = _target_path / dt.now().strftime('%Y-%m-%d_%H-%M-%S')
-        _session_path.mkdir(parents=True, exist_ok=True)
+        _target_path = "assets" + "/" + target
+        _session_path = _target_path + "/" + dt.now().strftime('%Y-%m-%d_%H-%M-%S')
+        local_session_path = pathlib.Path.home() / _session_path
+        local_session_path.mkdir(parents=True, exist_ok=True)
 
         # Query the database for scope, filtering on asset_type of URL
         scope = list(_scopes.find(
@@ -286,7 +283,7 @@ def process_targets(target_list, database):
             continue
 
         # Save scope as a file
-        scope_file = _session_path / "scope.json"
+        scope_file = local_session_path / "scope.json"
         with open(scope_file, "w+") as f:
             f.write(f"[{json.dumps(scope)}]")
 
@@ -320,7 +317,7 @@ def process_targets(target_list, database):
         ## Save link to target document
         session_document = _sessions.insert_one({
             "_schema": 1,
-            "path": str(_session_path),
+            "path": str(local_session_path),
             "target": target_document,
             "started": dt.now(),
             "finished": None,

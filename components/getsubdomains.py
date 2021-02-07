@@ -22,10 +22,11 @@ class GetSubdomains(Component):
     axiom_name = "gatherecon-getsubs"
     axiom_limit = None       # Maximum axiom instances that make sense for this component
 
-    def __init__(self, target, scope, session_path):
+    def __init__(self, target, scope, _session_path):
         self.scope = scope      # Scope file
         self.target = target    # Handle string in bounty-targets-data for the target company
-        self.session_path = pathlib.Path(session_path)      # Path to session folder
+        self.session_path = pathlib.Path.home() / _session_path      # Path to local session folder
+        self.session_path.mkdir(parents=True, exist_ok=True)
         self.all_subdomains = []        # Results from all submodules
         self.output = self.session_path / "active_subs.txt"     # Final output file
 
@@ -43,6 +44,15 @@ class GetSubdomains(Component):
         self.wordlist_path.mkdir(parents=True, exist_ok=True)
         self.ips_path = self.session_path / "ips"
         self.ips_path.mkdir(parents=True, exist_ok=True)
+
+        # Remote paths for axiom instances
+        self.remote_tools_dir = pathlib.Path(self.cfg.remote_tools_path)
+        self.remote_base_dir = pathlib.Path(self.cfg.remote_base_path)
+        self.remote_session_path = pathlib.Path(self.remote_base_dir / _session_path)
+        self.remote_scope = self.remote_session_path / "scope.json"
+        print("Session: " + str(_session_path))
+        print("Local session path: " + str(self.session_path))
+        print("Remote session path: " + str(self.remote_session_path))
 
     def install(self):
         try:
@@ -324,28 +334,37 @@ class GetSubdomains(Component):
             self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
-    def check_scope(self, url, program):
+    def check_scope(self, url, program, instances):
         # Take a URL as the input
         # then check against the scope file using nscope
         print("Checking scope...")
         print(f"Scope: {self.scope}\nTarget: {program}\nDomain: {url}")
-        r = subprocess.run(
-            f"python3 {self.tools_dir}/nscope/nscope \
-                -d '{self.scope}' \
-                -p '{program}' \
-                -t '{url}'",
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
+        print("Using Instances: " + str(instances))
+
+        # Upload scope file
+        self.axiom.send(self.scope, self.remote_scope, instances)
+
+        # Execute check scope on axiom instance
+        results = self.axiom.exec(
+            f"python3 {self.remote_tools_dir}/nscope/nscope \
+                 -d '{self.remote_scope}' \
+                 -p '{program}' \
+                 -t '{url}'",
+            instances
         )
-        return r.stdout
+        print("Results: " + str(results))
+        return results
+
+    def exec_tool(self, tool, count, *args):
+        results = tool(*args, self.axiom.instances[0:count])
+        return results
 
     def run(self):
         # Execute the component elements
         try:
             domains = self.get_input()
             for domain in domains:
-                self.check_scope(domain, self.target)
+                self.exec_tool(self.check_scope, 1, domain, self.target)
                 self.bass(domain)
                 self.subfinder(domain)
                 self.amass(domain)

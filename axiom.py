@@ -2,6 +2,7 @@ import digitalocean
 import fnmatch
 import subprocess
 import config
+import pathlib
 
 class Axiom():
     def __init__(self):
@@ -27,20 +28,17 @@ class Axiom():
         self.axiom_count = len(self.instances)
         return self.instances
 
-    def exec(self, command):
+    def exec(self, command, instances):
         results = []
-        if self.axiom_count > 0:
-            self.select(self.name)
-            for i in self.instances:
-                self.axiom_count -= 1
-                r = subprocess.run(
-                    f"axiom-exec {command} {i}",
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    check=True
-                )
-                results += r.stdout.decode('utf-8')
+        for i in instances:
+            r = subprocess.run(
+                f"axiom-exec '{command}' {i}",
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=True
+            )
+            results += [r.stdout.decode('utf-8')]
         return results
 
     def fleet(self, count):
@@ -68,16 +66,25 @@ class Axiom():
                 )
             return r.stdout.decode('utf-8')
 
-    def send(self, src, dest, instance):
+    def send(self, src, dest, instances):
+        # Make destination directory
+        r = self.exec(
+            f"mkdir -p {dest.parents[0]}",
+            instances
+        )
+
         # Sends a file to an instance.
-        r = subprocess.run(
-                    f"axiom-scp {src} {instance}:{dest}",
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    check=True
-                )
-        return r.stdout.decode('utf-8')
+        results = []
+        for i in instances:
+            r = subprocess.run(
+                        f"axiom-scp {src} {i}:{dest}",
+                        shell=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        check=True
+                    )
+            results += [r.stdout.decode('utf-8')]
+        return results
 
     def get(self, src, dest, instance):
         # Gets a file from an instance.
