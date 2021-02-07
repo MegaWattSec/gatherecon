@@ -78,6 +78,11 @@ class Config:
             _assets_path = _basedir_path / "assets"
             _tools_path = _basedir_path / "tools"
 
+            # Remote paths
+            remote_basedir_path = "/home/op"
+            remote_assets_path = remote_basedir_path / "assets"
+            remote_tools_path = remote_basedir_path / "tools"
+
             # put default properties into the Box object
             _new_cfg = { 
                 "paths": {
@@ -85,6 +90,11 @@ class Config:
                     "assets": str(_assets_path),
                     "tools": str(_tools_path),
                     "install": str(_install_path)
+                },
+                "remote_paths": {
+                    "basedir": str(remote_basedir_path),
+                    "assets": str(remote_assets_path),
+                    "tools": str(remote_tools_path)
                 },
                 "database": {
                     "host": self.default_host, 
