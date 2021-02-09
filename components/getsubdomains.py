@@ -359,9 +359,18 @@ class GetSubdomains(Component):
         results = tool(*args, self.axiom.instances[0:count])
         return results
 
-    def run(self):
+    def run(self, count):
         # Execute the component elements
+        # Take in the instance count for the Axiom fleet
         try:
+            # Setup axiom fleet to execute tools in
+            # Not all tools need concurrency, so they will only use a single instance
+            self.axiom.select(self.axiom_name)
+
+            # if not enough instances, then expand the fleet
+            if len(self.axiom.instances) < count:
+                self.axiom.fleet(count - len(self.axiom.instances))
+
             domains = self.get_input()
             for domain in domains:
                 self.exec_tool(self.check_scope, 1, domain, self.target)
