@@ -24,8 +24,7 @@ class GetSubdomains(Component):
     def __init__(self, target, scope, _session_path):
         self.scope = scope      # Scope file
         self.target = target    # Handle string in bounty-targets-data for the target company
-        self.session_path = pathlib.Path.home() / _session_path      # Path to local session folder
-        self.session_path.mkdir(parents=True, exist_ok=True)
+        self.session_path = _session_path
         self.all_subdomains = []        # Results from all submodules
         self.output = self.session_path / "active_subs.txt"     # Final output file
 

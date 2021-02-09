@@ -345,7 +345,7 @@ def process_targets(target_list, database):
                 upsert=True
             )
 
-        run_session(target, scope_file, database, session_document, _session_path)
+        run_session(target, scope_file, database, session_document, local_session_path)
     return 0
 
 def main(args=None):

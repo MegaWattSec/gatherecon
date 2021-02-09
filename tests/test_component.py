@@ -267,8 +267,7 @@ def test_check_scope_negative():
     check.is_not_in("mapi.example.com", result)
 
 def test_check_scope_postive():
-    _session_path = "assets/example.com/test"
-    resultdir = Path.home() / _session_path
+    resultdir = Path.home() / "assets" / "example.com" / "test"
     resultdir.mkdir(parents=True, exist_ok=True)
     scope = {
         "handle": "example",
@@ -289,7 +288,7 @@ def test_check_scope_postive():
     scopef = resultdir / f"scope.json"
     with open(scopef, "w+") as f:
         f.write(f"[{json.dumps(scope)}]")
-    mod = GetSubdomains("example", scopef, _session_path)
+    mod = GetSubdomains("example", scopef, resultdir)
     # Save primary domains list
     with open(resultdir / mod.input[0], "w+") as f:
         f.write("example.com")
