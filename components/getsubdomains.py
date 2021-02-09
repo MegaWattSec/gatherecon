@@ -1,7 +1,6 @@
 import subprocess
 import pathlib
 import shutil
-from axiom import Axiom
 from component import Component
 from config import Config
 
@@ -30,9 +29,6 @@ class GetSubdomains(Component):
         self.all_subdomains = []        # Results from all submodules
         self.output = self.session_path / "active_subs.txt"     # Final output file
 
-        # Setup axiom
-        self.axiom = Axiom()
-
         # Open config and get/create paths
         self.cfg = Config()
         self.tools_dir = pathlib.Path(self.cfg.tools_path)
@@ -44,15 +40,6 @@ class GetSubdomains(Component):
         self.wordlist_path.mkdir(parents=True, exist_ok=True)
         self.ips_path = self.session_path / "ips"
         self.ips_path.mkdir(parents=True, exist_ok=True)
-
-        # Remote paths for axiom instances
-        self.remote_tools_dir = pathlib.Path(self.cfg.remote_tools_path)
-        self.remote_base_dir = pathlib.Path(self.cfg.remote_base_path)
-        self.remote_session_path = pathlib.Path(self.remote_base_dir / _session_path)
-        self.remote_scope = self.remote_session_path / "scope.json"
-        print("Session: " + str(_session_path))
-        print("Local session path: " + str(self.session_path))
-        print("Remote session path: " + str(self.remote_session_path))
 
     def install(self):
         try:
@@ -220,24 +207,16 @@ class GetSubdomains(Component):
         return self.input_domains
 
     def bass(self, domain):
-        # If there are avialable axiom instances, use one
-        if self.axiom.axiom_count > 0:
-            r = self.axiom.exec(f"python3 {self.tools_dir}/bass/bass.py \
-                    -d '{domain}' \
-                    -o {self.ips_path}/resolvers.txt")
-            # Decrement the available axiom instance count
-            self.axiom.axiom_count -= 1
-        else:
-            r = subprocess.run(
-                f"python3 {self.tools_dir}/bass/bass.py \
-                    -d '{domain}' \
-                    -o {self.ips_path}/resolvers.txt",
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                check=True
-                ).returncode
-        return r
+        r = subprocess.run(
+            f"python3 {self.tools_dir}/bass/bass.py \
+                -d '{domain}' \
+                -o {self.ips_path}/resolvers.txt",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=True
+            )
+        return r.returncode
 
     def subfinder(self, domain):
         r = subprocess.run(
@@ -334,37 +313,29 @@ class GetSubdomains(Component):
             self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
-    def check_scope(self, url, program, instances):
+    def check_scope(self, url, program):
         # Take a URL as the input
         # then check against the scope file using nscope
         print("Checking scope...")
         print(f"Scope: {self.scope}\nTarget: {program}\nDomain: {url}")
-        print("Using Instances: " + str(instances))
 
-        # Upload scope file
-        self.axiom.send(self.scope, self.remote_scope, instances)
-
-        # Execute check scope on axiom instance
-        results = self.axiom.exec(
-            f"python3 {self.remote_tools_dir}/nscope/nscope \
-                 -d '{self.remote_scope}' \
-                 -p '{program}' \
-                 -t '{url}'",
-            instances
+        results = subprocess.run(
+            f"python3 {self.tools_dir}/nscope/nscope \
+                -d '{self.scope}' \
+                -p '{program}' \
+                -t '{url}'",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
         )
-        print("Results: " + str(results))
-        return results
-
-    def exec_tool(self, tool, count, *args):
-        results = tool(*args, self.axiom.instances[0:count])
-        return results
+        return results.stdout
 
     def run(self):
         # Execute the component elements
         try:
             domains = self.get_input()
             for domain in domains:
-                self.exec_tool(self.check_scope, 1, domain, self.target)
+                self.check_scope, domain, self.target
                 self.bass(domain)
                 self.subfinder(domain)
                 self.amass(domain)

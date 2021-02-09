@@ -293,16 +293,11 @@ def test_check_scope_postive():
     # Save primary domains list
     with open(resultdir / mod.input[0], "w+") as f:
         f.write("example.com")
-    # Check for existing instances or create a small fleet
-    mod.axiom.select(mod.axiom_name)
-    if len(mod.axiom.instances) == 0:
-        mod.axiom.fleet(1)
     # Run the tool
-    results = mod.exec_tool(mod.check_scope, 1, "api.example.com", "example")
+    results = mod.check_scope, "api.example.com", "example"
     # Check the results
-    check.is_not([], results)
-    for r in results:
-        check.is_in("api.example.com", r)
+    check.is_not("", results)
+    check.is_in("api.example.com", results)
 
 def test_run_getsubdomains(mocker):
     # mock the methods that run tools to just test the "run" functionality

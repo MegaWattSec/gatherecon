@@ -10,9 +10,7 @@ import graphlib
 import json
 from datetime import datetime as dt
 from bson import json_util
-
 import config
-from axiom import Axiom
 from component import Component
 
 def validate_db(database):
@@ -99,30 +97,19 @@ def create_graph(name):
     return order
 
 def run_session(target, scope, database, session, _session_path):
-    # Use axiom for concurrency
-    axiom = Axiom()
-
     # Create module dependency graph from modules in components/ directory
     com_order = create_graph("components")
 
     # Loop through heirarchy levels
     # Sibling components are executed in parallel
     for level in com_order:
-        ## Divide remaining axiom instances between components in heirarchy level
-        ## to get the instance per component
-        droplets = axiom.get_all_instances()
-        droplets_needed = (axiom.limit - len(droplets)) / len(level)
-
         ## Loop through components on level
         for c in level:
             ### Initialize the component
             com = c(target, scope, _session_path)
 
-            ### Pass in the axiom instance count or the component's maximum
-            if com.axiom_limit >= droplets_needed:
-                com.run(droplets_needed)
-            else:
-                com.run(com.axiom_limit)
+            ### Run the component
+            com.run()
 
     # Return any errors or 0
     return 0
