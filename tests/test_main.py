@@ -1,6 +1,8 @@
+import json
 import pytest_check
 from pytest_mock import mocker
-from main import main, create_graph
+from pathlib import Path
+from main import main, create_graph, run_session
 
 def test_specific_target(mocker):
     # mock the 'run' function of main for now
@@ -79,5 +81,32 @@ def test_create_graph():
     pytest_check.check( len(levl[0]) == 2 )
 
 def test_run_session():
-
-    assert True
+    resultdir = Path.home() / "assets" / "example.com" / "test"
+    resultdir.mkdir(parents=True, exist_ok=True)
+    scope = {
+        "handle": "example",
+            "targets": {
+                "out_of_scope": [
+                    {
+                        "asset_identifier": "*.example.com"
+                    },
+                ],
+                "in_scope": [
+                    {
+                        "asset_identifier": "api.example.com"
+                    },
+                ]
+            }
+    }
+    # Save scope as a file
+    scopef = resultdir / "scope.json"
+    with open(scopef, "w+") as f:
+        f.write(f"[{json.dumps(scope)}]")
+    # Save domain list for GetSubdomains
+    domainf = resultdir / "primary_domains.txt"
+    with open(domainf, "w+") as f:
+        f.write("example.com")
+    results = run_session("api.example.com", scopef, "database", "session", resultdir)
+    assert results == [0]
+    with open(resultdir / "subs" / "active_subs.txt", "r") as f:
+        assert "www.example.com" in f.read()

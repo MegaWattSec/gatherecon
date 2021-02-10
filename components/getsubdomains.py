@@ -200,9 +200,9 @@ class GetSubdomains(Component):
 
     def get_input(self):
         self.input_domains = []
-        with open(self.session_path / self.input[0], "w+") as f:
+        with open(self.session_path / self.input[0], "r+") as f:
             for line in f:
-                self.input_domains += line.strip()
+                self.input_domains.append(line.strip())
         return self.input_domains
 
     def bass(self, domain):
@@ -227,7 +227,7 @@ class GetSubdomains(Component):
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "subfinder.txt", 'w+') as out_file:
+        with open(self.subs_path / "subfinder.txt", 'r') as out_file:
             self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
@@ -243,7 +243,7 @@ class GetSubdomains(Component):
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "amass_scan.txt", 'w+') as out_file:
+        with open(self.subs_path / "amass_scan.txt", 'r') as out_file:
             self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
@@ -271,8 +271,7 @@ class GetSubdomains(Component):
                     fields = line.strip().split()
                     # save the second field into the results file
                     r.write(fields[2])
-        with open(self.subs_path / "hakrawler.txt", 'w+') as out_file:
-            self.all_subdomains += [line.rstrip('\n') for line in out_file]
+                    self.all_subdomains.append(fields[2])
         return r.returncode
 
     def subscraper(self, domain):
@@ -285,7 +284,7 @@ class GetSubdomains(Component):
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "subscraper.txt", 'w+') as out_file:
+        with open(self.subs_path / "subscraper.txt", 'r') as out_file:
             self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
@@ -294,7 +293,7 @@ class GetSubdomains(Component):
         self.all_subdomains = sorted(set(self.all_subdomains))
 
         # combine all subdomains in a text file and run against resolvers
-        with open(self.subs_path / "all_subdomains.txt", "w+") as f:
+        with open(self.subs_path / "all_subdomains.txt", "w") as f:
             for item in self.all_subdomains:
                 f.write(item + "\n")
 
@@ -308,8 +307,8 @@ class GetSubdomains(Component):
             stderr=subprocess.STDOUT,
             check=True
         )
-        with open(self.subs_path / "active_subs.txt", 'w+') as out_file:
-            self.all_subdomains += [line.rstrip('\n') for line in out_file]
+        # with open(self.subs_path / "active_subs.txt", 'r') as out_file:
+        #     self.all_subdomains += [line.rstrip('\n') for line in out_file]
         return r.returncode
 
     def check_scope(self, url, program):
@@ -334,17 +333,18 @@ class GetSubdomains(Component):
         try:
             domains = self.get_input()
             for domain in domains:
+                print("Recon for: " + domain)
                 self.check_scope, domain, self.target
                 self.bass(domain)
                 self.subfinder(domain)
                 self.amass(domain)
                 self.hakrawler(domain)
                 self.subscraper(domain)
-            result = self.resolve_all()
+            self.resolve_all()
             # Copy output from resolve_all into session folder as final output
             shutil.copy(self.subs_path / "active_subs.txt", self.session_path / self.output)
-            return result
+            return 0
         except subprocess.CalledProcessError as e:
             print("\n\nRun Command: " + e.cmd)
             print("\n\nOutput: " + e.output.decode("utf-8"))
-            return e.returncode
+            return e.output

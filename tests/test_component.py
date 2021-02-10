@@ -60,6 +60,8 @@ def test_input():
         f.write("example.com")
     for each in mod.input:
         check.is_true( Path(mod.session_path / each).exists() )
+    result = mod.get_input()
+    assert result == ["example.com"]
 
 def test_getsubdomains_amass():
     # This test takes a looong time to run
@@ -204,9 +206,11 @@ def test_getsubdomains_resolve():
     # Save primary domains list
     with open(resultdir / mod.input[0], "w+") as f:
         f.write("example.com")
-    mod.all_subdomains = ["test.example.com", "test2.example.com", "test3.example.com"]
+    mod.all_subdomains = ["www.example.com", "test.example.com", "test2.example.com", "test3.example.com"]
     result = mod.resolve_all()
     assert result == 0
+    with open(mod.subs_path / "active_subs.txt", "r") as f:
+        assert "www.example.com" in f.read()
 
 def test_getsubdomains_subscraper():
     resultdir = Path.home() / "assets" / "example.com" / "test"
@@ -325,25 +329,27 @@ def test_run_getsubdomains(mocker):
     # Save primary domains list
     with open(resultdir / mod.input[0], "w+") as f:
         f.write("example.com")
-    mocker.patch(
-        "components.getsubdomains.GetSubdomains.bass",
-        return_value=0
-    )
-    mocker.patch(
-        "components.getsubdomains.GetSubdomains.subfinder",
-        return_value=0
-    )
-    mocker.patch(
-        "components.getsubdomains.GetSubdomains.amass",
-        return_value=0
-    )
-    mocker.patch(
-        "components.getsubdomains.GetSubdomains.hakrawler",
-        return_value=0
-    )
-    mocker.patch(
-        "components.getsubdomains.GetSubdomains.subscraper",
-        return_value=0
-    )
-    result = mod.run()
-    assert result == 0
+    # mocker.patch(
+    #     "components.getsubdomains.GetSubdomains.bass",
+    #     return_value=0
+    # )
+    # mocker.patch(
+    #     "components.getsubdomains.GetSubdomains.subfinder",
+    #     return_value=0
+    # )
+    # mocker.patch(
+    #     "components.getsubdomains.GetSubdomains.amass",
+    #     return_value=0
+    # )
+    # mocker.patch(
+    #     "components.getsubdomains.GetSubdomains.hakrawler",
+    #     return_value=0
+    # )
+    # mocker.patch(
+    #     "components.getsubdomains.GetSubdomains.subscraper",
+    #     return_value=0
+    # )
+    results = mod.run()
+    assert results == 0
+    with open(mod.subs_path / "active_subs.txt", "r") as f:
+        assert "www.example.com" in f.read()

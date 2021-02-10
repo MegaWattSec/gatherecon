@@ -100,6 +100,9 @@ def run_session(target, scope, database, session, _session_path):
     # Create module dependency graph from modules in components/ directory
     com_order = create_graph("components")
 
+    # Results list
+    results = []
+
     # Loop through heirarchy levels
     # Sibling components are executed in parallel
     for level in com_order:
@@ -109,10 +112,10 @@ def run_session(target, scope, database, session, _session_path):
             com = c(target, scope, _session_path)
 
             ### Run the component
-            com.run()
+            results.append(com.run())
 
     # Return any errors or 0
-    return 0
+    return results
 
 def search_scopes(search_terms, database):
     # TODO: Sanitize input
